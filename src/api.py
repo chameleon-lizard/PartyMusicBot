@@ -58,3 +58,10 @@ def get_history():
     return {
         'Result': list(map(lambda _: _.to_dict(), player.history))
     }
+
+
+@app.get("/check_queue")
+def check_queue():
+    return {
+        'Result': player.queue.snapshot()
+    }

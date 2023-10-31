@@ -1,5 +1,4 @@
 import asyncio
-import queue
 import threading
 
 import playsound
@@ -15,7 +14,7 @@ class Player(threading.Thread):
 
     def __init__(self):
         super(Player, self).__init__()
-        self.queue = queue.Queue()
+        self.queue = utils.SnapshotQueue()
         self.now_playing = utils.Song()
         self.history = []
 

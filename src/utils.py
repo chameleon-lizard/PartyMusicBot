@@ -4,6 +4,7 @@ import logging
 import pathlib
 import re
 import shutil
+import queue
 
 import yt_dlp
 
@@ -25,6 +26,12 @@ class Song:
 
     def __str__(self):
         return json.dumps(self.to_dict())
+
+
+class SnapshotQueue(queue.Queue):
+    def snapshot(self) -> list:
+        with self.mutex:
+            return list(self.queue)
 
 
 def check_url(url: str) -> bool:
