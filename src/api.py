@@ -16,7 +16,7 @@ class AddSongBaseModel(pydantic.BaseModel):
     url: str
 
 
-@app.post("/add_song/{url}")
+@app.post("/add_song")
 def play_song(
     add_song: AddSongBaseModel,
 ):
