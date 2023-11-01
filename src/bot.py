@@ -57,7 +57,7 @@ async def now_playing(message: telebot.types.Message) -> None:
         url=f"http://{os.environ.get('SERVER_IP')}/now_playing",
     ).json()
 
-    if response['url'] is None and response['name'] is None:
+    if response['Result']['url'] is None and response['Result']['name'] is None:
         await bot.reply_to(
             message=message,
             text='Nothing is playing.',
@@ -67,13 +67,13 @@ async def now_playing(message: telebot.types.Message) -> None:
 
     await bot.reply_to(
         message=message,
-        text=f"[{response['name']}]({response['url']})",
+        text=f"[{response['Result']['name']}]({response['Result']['url']})"
     )
 
     utils.send_audio(
-        path=response['song_path'],
+        path=response['Result']['song_path'],
         chat_id=message.chat.id,
-        name=response['name'],
+        name=response['Result']['name'],
         token=os.environ.get('BOT_TOKEN'),
     )
 
