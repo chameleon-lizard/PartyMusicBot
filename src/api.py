@@ -17,22 +17,24 @@ class AddSongBaseModel(pydantic.BaseModel):
 
 
 @app.post("/add_song")
-def play_song(
-    add_song: AddSongBaseModel,
+def add_song(
+    added_song: AddSongBaseModel,
 ):
-    if not utils.check_url(url=add_song.url):
-        logging.error(msg=f'Incorrect URL: {add_song.url}')
+    if not utils.check_url(url=added_song.url):
+        logging.error(msg=f'Incorrect URL: {added_song.url}')
 
         return {
-            'Result': f'Incorrect URL: {add_song.url}',
+            'Result': f'Incorrect URL: {added_song.url}',
         }
 
     try:
-        song = utils.download_song(add_song.url)
+        song = utils.download_song(
+            url=added_song.url,
+        )
     except ValueError as e:
-        logging.error(msg=f'Youtube-dl returned error: {str(e)}, URL: {add_song.url}')
+        logging.error(msg=f'Youtube-dl returned error: {str(e)}, URL: {added_song.url}')
         return {
-            'Result': f'Youtube-dl returned error: {str(e)}, URL: {add_song.url}',
+            'Result': f'Youtube-dl returned error: {str(e)}, URL: {added_song.url}',
         }
 
     try:
