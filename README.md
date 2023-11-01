@@ -14,7 +14,7 @@ This is an extremely barebones implementation, so lots of stuff will be added:
 - [ ] Telegram bot that uses the API.
 - [ ] Seeing the song queue through the API and the bot.
 - [ ] Pausing and playing.
-- [ ] Users and elevated priviliges. All animals are equal, but some animals are more equal than others - especially if they are the farm's owners.
+- [ ] Users and elevated privileges. All animals are equal, but some animals are more equal than others - especially if they are the farm's owners.
 - [ ] Voting for the next song and priority to songs in the queue.
 - [ ] Skipping songs.
 - [ ] Hardware - rpi connected to a speaker as a final task.
