@@ -50,7 +50,9 @@ def play_song(
 
 @app.get("/now_playing")
 def now_playing():
-    return player.now_playing.to_dict()
+    return {
+        'Result': player.now_playing.to_dict(),
+    }
 
 
 @app.get("/history")
