@@ -1,13 +1,22 @@
+import json
 import logging
 import os
-import requests
 
+import dotenv
+import requests
 import telebot
 from telebot.async_telebot import AsyncTeleBot
 
+from src import utils
+
 logging.basicConfig(format='%(levelname)s: %(message)s"', level=logging.INFO)
 
-bot = AsyncTeleBot(os.environ.get('BOT_TOKEN'))
+dotenv.load_dotenv('../venv/.env')
+
+bot = AsyncTeleBot(
+    token=f"{os.environ.get('BOT_TOKEN')}",
+    parse_mode='MARKDOWN',
+)
 
 
 @bot.message_handler(commands=['help', 'start'])
@@ -23,44 +32,87 @@ async def welcome(message: telebot.types.Message) -> None:
 
 @bot.message_handler(commands=['add_song'])
 async def add_song(message: telebot.types.Message) -> None:
+    url = message.text[10:]
+
+    logging.info(f'User @{message.from_user.username} with id {message.from_user.id} added url: {url}')
+
     response = requests.post(
-        url=os.environ.get('SERVER_IP'),
-        data={
-            'url': f'{message.text}'
-        }
+        url=f"http://{os.environ.get('SERVER_IP')}/add_song",
+        data=json.dumps(
+            {
+                'url': url
+            }
+        )
     ).json()
 
     await bot.reply_to(
         message=message,
-        text=f"{response['Result']}"
+        text=f"[{response['Result']['name']}]({response['Result']['url']})"
     )
 
 
 @bot.message_handler(commands=['now_playing'])
 async def now_playing(message: telebot.types.Message) -> None:
     response = requests.get(
-        url=os.environ.get('SERVER_IP'),
+        url=f"http://{os.environ.get('SERVER_IP')}/now_playing",
     ).json()
+
+    if response['url'] is None and response['name'] is None:
+        await bot.reply_to(
+            message=message,
+            text='Nothing is playing.',
+        )
+
+        return
 
     await bot.reply_to(
         message=message,
-        text=f"{response['name']}"
+        text=f"[{response['name']}]({response['url']})",
+    )
+
+    utils.send_audio(
+        path=response['song_path'],
+        chat_id=message.chat.id,
+        name=response['name'],
+        token=os.environ.get('BOT_TOKEN'),
     )
 
 
 @bot.message_handler(commands=['history'])
-async def now_playing(message: telebot.types.Message) -> None:
+async def history(message: telebot.types.Message) -> None:
     response = requests.get(
-        url=os.environ.get('SERVER_IP'),
+        url=f"http://{os.environ.get('SERVER_IP')}/history",
     ).json()
 
-    history_names = '\n'.join(f"{_['name']: _['url']}" for _ in response['Result'])
+    if len(response['Result']) == 0:
+        await bot.reply_to(
+            message=message,
+            text='No history yet. Start playing songs to get one!',
+        )
+
+        return
+
+    logging.info(response['Result'])
+
+    history_names = [_['name'] for _ in response['Result']]
+    history_paths = [_['song_path'] for _ in response['Result']]
+    history_url = [_['url'] for _ in response['Result']]
 
     await bot.reply_to(
         message=message,
-        text=history_names,
+        text='\n\n'.join(
+            f'{idx + 1}: [{name}]({url})' for idx, (name, url) in enumerate(zip(history_names, history_url))
+            ),
     )
 
+    for path, name in zip(history_paths, history_names):
+        utils.send_audio(
+            path=path,
+            chat_id=message.chat.id,
+            name=name,
+            token=os.environ.get('BOT_TOKEN'),
+        )
 
-def start_bot() -> None:
-    bot.infinity_polling()
+
+async def start_bot() -> None:
+    await bot.infinity_polling()
