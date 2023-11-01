@@ -95,5 +95,5 @@ def get_song_text(song_dict: dict) -> str:
     if 'Result' in song_dict:
         song_dict = song_dict['Result']
 
-    suggested_by = song_dict['suggested_by'].replace('_', '\_')
+    suggested_by = song_dict['suggested_by'].replace('_', r'\_')
     return f"[{song_dict['name']}]({song_dict['url']}) - suggested by {suggested_by}"
