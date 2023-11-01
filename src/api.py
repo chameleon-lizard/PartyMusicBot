@@ -44,7 +44,7 @@ def play_song(
         }
 
     return {
-        'Result': song.to_dict()
+        'Result': song.to_dict(),
     }
 
 
@@ -58,12 +58,12 @@ def now_playing():
 @app.get("/history")
 def get_history():
     return {
-        'Result': list(map(lambda _: _.to_dict(), player.history))
+        'Result': list(map(lambda _: _.to_dict(), player.history)),
     }
 
 
 @app.get("/check_queue")
 def check_queue():
     return {
-        'Result': player.queue.snapshot()
+        'Result': player.queue.snapshot(),
     }
