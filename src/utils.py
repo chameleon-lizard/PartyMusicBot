@@ -17,12 +17,14 @@ class Song:
     url: str | None = None
     song_path: pathlib.Path | None = None
     name: str | None = None
+    suggested_by: str | None = None
 
     def to_dict(self) -> dict:
         return {
             'url': self.url,
             'song_path': str(self.song_path),
             'name': self.name,
+            'suggested_by': self.suggested_by,
         }
 
     def __str__(self):
@@ -40,7 +42,7 @@ def check_url(url: str) -> bool:
     return re.match(pattern=youtube_url_regex_pattern, string=url) is not None
 
 
-def download_song(url: str) -> Song:
+def download_song(url: str, suggested_by: str) -> Song:
     ydl_opts = {
         'format': 'm4a/bestaudio/best',
         'outtmpl': '%(id)s.%(ext)s',
@@ -66,6 +68,7 @@ def download_song(url: str) -> Song:
             url=url,
             song_path=song_path,
             name=song_info['title'],
+            suggested_by=suggested_by,
         )
 
         return video
@@ -89,7 +92,8 @@ def send_audio(path: pathlib.Path | str, chat_id: int, name: str, token: str) ->
 
 
 def get_song_text(song_dict: dict) -> str:
-    try:
-        return f"[{song_dict['Result']['name']}]({song_dict['Result']['url']})"
-    except KeyError:
-        return f"[{song_dict['name']}]({song_dict['url']})"
+    if 'Result' in song_dict:
+        song_dict = song_dict['Result']
+
+    suggested_by = song_dict['suggested_by'].replace('_', '\_')
+    return f"[{song_dict['name']}]({song_dict['url']}) - suggested by {suggested_by}"
