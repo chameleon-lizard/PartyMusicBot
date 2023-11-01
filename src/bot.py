@@ -47,7 +47,7 @@ async def add_song(message: telebot.types.Message) -> None:
 
     await bot.reply_to(
         message=message,
-        text=f"[{response['Result']['name']}]({response['Result']['url']})"
+        text=utils.get_song_text(song_dict=response),
     )
 
 
@@ -67,7 +67,7 @@ async def now_playing(message: telebot.types.Message) -> None:
 
     await bot.reply_to(
         message=message,
-        text=f"[{response['Result']['name']}]({response['Result']['url']})"
+        text=utils.get_song_text(song_dict=response),
     )
 
     utils.send_audio(

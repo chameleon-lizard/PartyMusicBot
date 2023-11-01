@@ -86,3 +86,10 @@ def send_audio(path: pathlib.Path | str, chat_id: int, name: str, token: str) ->
             data=payload,
             files=files
         ).json()
+
+
+def get_song_text(song_dict: dict) -> str:
+    try:
+        return f"[{song_dict['Result']['name']}]({song_dict['Result']['url']})"
+    except KeyError:
+        return f"[{song_dict['name']}]({song_dict['url']})"
