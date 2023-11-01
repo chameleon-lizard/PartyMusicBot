@@ -14,6 +14,7 @@ player.start()
 
 class AddSongBaseModel(pydantic.BaseModel):
     url: str
+    suggested_by: str
 
 
 @app.post("/add_song")
@@ -30,6 +31,7 @@ def add_song(
     try:
         song = utils.download_song(
             url=added_song.url,
+            suggested_by=added_song.suggested_by,
         )
     except ValueError as e:
         logging.error(msg=f'Youtube-dl returned error: {str(e)}, URL: {added_song.url}')
