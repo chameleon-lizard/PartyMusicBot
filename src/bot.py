@@ -109,5 +109,27 @@ async def history(message: telebot.types.Message) -> None:
         )
 
 
+@bot.message_handler(commands=['queue'])
+async def queue(message: telebot.types.Message) -> None:
+    response = requests.get(
+        url=f"http://{os.environ.get('SERVER_IP')}/check_queue",
+    ).json()
+
+    if len(response['Result']) == 0:
+        await bot.reply_to(
+            message=message,
+            text='No queue yet. Start playing songs to get one!',
+        )
+
+        return
+
+    await bot.reply_to(
+        message=message,
+        text='\n'.join(
+            f'{idx + 1}: {utils.get_song_text(song_dict=_)}' for idx, _ in enumerate(response['Result'])
+            ),
+    )
+
+
 async def start_bot() -> None:
     await bot.infinity_polling()
