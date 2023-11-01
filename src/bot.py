@@ -92,24 +92,18 @@ async def history(message: telebot.types.Message) -> None:
 
         return
 
-    logging.info(response['Result'])
-
-    history_names = [_['name'] for _ in response['Result']]
-    history_paths = [_['song_path'] for _ in response['Result']]
-    history_url = [_['url'] for _ in response['Result']]
-
     await bot.reply_to(
         message=message,
-        text='\n\n'.join(
-            f'{idx + 1}: [{name}]({url})' for idx, (name, url) in enumerate(zip(history_names, history_url))
+        text='\n'.join(
+            f'{idx + 1}: {utils.get_song_text(song_dict=_)}' for idx, _ in enumerate(response['Result'])
             ),
     )
 
-    for path, name in zip(history_paths, history_names):
+    for song in response['Result']:
         utils.send_audio(
-            path=path,
+            path=song['song_path'],
             chat_id=message.chat.id,
-            name=name,
+            name=song['name'],
             token=os.environ.get('BOT_TOKEN'),
         )
 
