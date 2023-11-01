@@ -40,7 +40,7 @@ async def add_song(message: telebot.types.Message) -> None:
         url=f"http://{os.environ.get('SERVER_IP')}/add_song",
         data=json.dumps(
             {
-                'url': url
+                'url': url,
             }
         )
     ).json()
