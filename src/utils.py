@@ -2,10 +2,11 @@ import dataclasses
 import json
 import logging
 import pathlib
+import queue
 import re
 import shutil
-import queue
 
+import requests
 import yt_dlp
 
 logging.basicConfig(format='%(levelname)s: %(message)s"', level=logging.INFO)
@@ -68,3 +69,20 @@ def download_song(url: str) -> Song:
         )
 
         return video
+
+
+def send_audio(path: pathlib.Path | str, chat_id: int, name: str, token: str) -> None:
+    with open(path, 'rb') as audio:
+        payload = {
+            'chat_id': chat_id,
+            'title': name,
+            'parse_mode': 'HTML'
+        }
+        files = {
+            'audio': audio.read(),
+        }
+        requests.post(
+            f"https://api.telegram.org/bot{token}/sendAudio",
+            data=payload,
+            files=files
+        ).json()
