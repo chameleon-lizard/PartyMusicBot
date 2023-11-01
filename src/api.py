@@ -11,6 +11,8 @@ app = fastapi.FastAPI()
 player = server.Player()
 player.start()
 
+downloader = server.Downloader()
+downloader.start()
 
 class AddSongBaseModel(pydantic.BaseModel):
     url: str
@@ -38,15 +40,19 @@ def add_song(
             suggested_by=added_song.suggested_by,
         )
     except StopIteration:
-        try:
-            song = utils.download_song(
-                url=added_song.url,
-                suggested_by=added_song.suggested_by,
+        downloader.input_queue.put(
+            (
+                added_song.url,
+                added_song.suggested_by,
             )
-        except ValueError as e:
-            logging.error(msg=f'Youtube-dl returned error: {str(e)}, URL: {added_song.url}')
+        )
+
+        song = downloader.output_queue.get()
+
+        if not isinstance(song, utils.Song):
+            logging.error(msg=f'Youtube-dl returned error: {str(song)}, URL: {added_song.url}')
             return {
-                'Result': f'Youtube-dl returned error: {str(e)}, URL: {added_song.url}',
+                'Result': f'Youtube-dl returned error: {str(song)}, URL: {added_song.url}',
             }
 
     try:
