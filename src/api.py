@@ -28,16 +28,26 @@ def add_song(
             'Result': f'Incorrect URL: {added_song.url}',
         }
 
+    # If the song is already in history, using the same song
     try:
-        song = utils.download_song(
-            url=added_song.url,
+        cached_song = next((_ for _ in player.history + player.queue.snapshot() if _.url == added_song.url))
+        song = utils.Song(
+            url=cached_song.url,
+            song_path=cached_song.song_path,
+            name=cached_song.name,
             suggested_by=added_song.suggested_by,
         )
-    except ValueError as e:
-        logging.error(msg=f'Youtube-dl returned error: {str(e)}, URL: {added_song.url}')
-        return {
-            'Result': f'Youtube-dl returned error: {str(e)}, URL: {added_song.url}',
-        }
+    except StopIteration:
+        try:
+            song = utils.download_song(
+                url=added_song.url,
+                suggested_by=added_song.suggested_by,
+            )
+        except ValueError as e:
+            logging.error(msg=f'Youtube-dl returned error: {str(e)}, URL: {added_song.url}')
+            return {
+                'Result': f'Youtube-dl returned error: {str(e)}, URL: {added_song.url}',
+            }
 
     try:
         player.add_song(song)
