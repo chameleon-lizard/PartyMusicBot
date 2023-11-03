@@ -4,17 +4,18 @@ A simple bot to manage music queue during parties. API included, so you can make
 
 # Premise
 
-I love to listen to 70-s rock when I'm drunk, but not everyone loves the same music as I do. In order to keep fighting to a minimum, I decided to create a telegram bot that will manage music queue for you.
+During parties people often have only one bluetooth speaker and one phone connected to it, but many people with different
+choices of music. To minimize fighting for the privilege of listening to your favorite songs, I've decided to create this
+bot, which can manage music queue for you.
 
 # TODO
 
 This is an extremely barebones implementation, so lots of stuff will be added:
 
 - [x] Barebones API.
-- [ ] Telegram bot that uses the API.
-- [ ] Seeing the song queue through the API and the bot.
+- [x] Telegram bot that uses the API.
+- [x] Seeing the song queue through the API and the bot.
 - [ ] Pausing and playing.
 - [ ] Users and elevated privileges. All animals are equal, but some animals are more equal than others - especially if they are the farm's owners.
 - [ ] Voting for the next song and priority to songs in the queue.
 - [ ] Skipping songs.
-- [ ] Hardware - rpi connected to a speaker as a final task.
