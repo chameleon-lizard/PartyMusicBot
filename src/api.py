@@ -2,6 +2,7 @@ import logging
 
 import fastapi
 import pydantic
+from fastapi.staticfiles import StaticFiles
 
 from src import server
 from src import utils
@@ -13,6 +14,7 @@ player.start()
 
 downloader = server.Downloader()
 downloader.start()
+
 
 class AddSongBaseModel(pydantic.BaseModel):
     url: str
@@ -56,7 +58,7 @@ def add_song(
             }
 
     try:
-        player.add_song(song)
+        player.queue.put(song)
     except server.playsound.PlaysoundException as e:
         logging.error(msg=f'Playsound error: {str(e)}, Song: {song}')
         return {
@@ -87,3 +89,6 @@ def check_queue():
     return {
         'Result': player.queue.snapshot(),
     }
+
+
+app.mount("/", StaticFiles(directory="static", html=True))
