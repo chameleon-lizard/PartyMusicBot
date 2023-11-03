@@ -1,10 +1,10 @@
-import asyncio
 import concurrent.futures
 import logging
 import queue
 import threading
+import time
 
-import playsound
+import vlc
 
 from src import utils
 
@@ -19,42 +19,54 @@ class Player(threading.Thread):
 
     def __init__(self):
         super(Player, self).__init__()
+
+        # Creating song queue and history
         self.queue = utils.SnapshotQueue()
         self.now_playing = utils.Song()
         self.history = []
 
-        self._loop = asyncio.new_event_loop()
-        self._lock = asyncio.Lock()
-        self._background_tasks = set()
+        # Creating VLC instance, player and playlist
+        self.vlc_instance = vlc.Instance()
+        self.player = vlc.MediaListPlayer()
+        self.media_list = self.vlc_instance.media_list_new()
 
-    async def _play_song(self, song: utils.Song) -> None:
-        async with self._lock:
-            self.now_playing = song
-            playsound.playsound(
-                sound=song.song_path.absolute(),
-                block=True,
-            )
-            self.history.append(song)
+        # Creating parameter string for VLC
+        self.sout = \
+            ('sout=#transcode{vcodec=none,acodec=mp3,ab=128,channels=2,samplerate=44100,scodec=none}:http{mux=mp3,'
+             'dst=:8080/}')
 
-    async def _asyncio_event_loop(self) -> None:
+        # Creating and adding the silence between the songs so VLC will not stop streaming
+        silence = self.vlc_instance.media_new(
+            f"file://{utils.pathlib.Path('resources/silence.mp3').absolute()}",
+            self.sout,
+        )
+        self.player.set_media_list(self.media_list)
+        self.media_list.add_media(silence)
+
+    def run(self) -> None:
         while True:
             if self.queue.empty():
-                await asyncio.sleep(1)
+                self.player.play()
+                time.sleep(1)
                 continue
 
             song = self.queue.get_nowait()
 
-            task = asyncio.create_task(
-                self._play_song(song=song),
-            )
-            self._background_tasks.add(task)
-            task.add_done_callback(self._background_tasks.discard)
+            logging.info(f'Playing song: {song.name}')
 
-    def add_song(self, song: utils.Song) -> None:
-        self.queue.put(song)
+            self.now_playing = song
+            self.history.append(song)
 
-    def run(self) -> None:
-        self._loop.run_until_complete(self._asyncio_event_loop())
+            mrl = f'file://{song.song_path.absolute()}'
+
+            m = self.vlc_instance.media_new(mrl, self.sout)
+            self.media_list.add_media(m)
+            self.player.play()
+
+            while self.player.is_playing():
+                time.sleep(1)
+
+            self.media_list.remove_index(1)
 
 
 class Downloader(threading.Thread):
