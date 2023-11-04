@@ -1,8 +1,10 @@
 import logging
+import os
 
+import dotenv
 import fastapi
 import pydantic
-from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from src import server
 from src import utils
@@ -15,13 +17,15 @@ player.start()
 downloader = server.Downloader()
 downloader.start()
 
+dotenv.load_dotenv('venv/.env')
+
 
 class AddSongBaseModel(pydantic.BaseModel):
     url: str
     suggested_by: str
 
 
-@app.post("/add_song")
+@app.post('/add_song')
 def add_song(
     added_song: AddSongBaseModel,
 ):
@@ -70,25 +74,30 @@ def add_song(
     }
 
 
-@app.get("/now_playing")
+@app.get('/now_playing')
 def now_playing():
     return {
         'Result': player.now_playing.to_dict(),
     }
 
 
-@app.get("/history")
+@app.get('/history')
 def get_history():
     return {
         'Result': list(map(lambda _: _.to_dict(), player.history)),
     }
 
 
-@app.get("/check_queue")
+@app.get('/check_queue')
 def check_queue():
     return {
         'Result': player.queue.snapshot(),
     }
 
 
-app.mount("/", StaticFiles(directory="static", html=True))
+templates = Jinja2Templates(directory='templates')
+
+
+@app.get('/', response_class=fastapi.responses.HTMLResponse)
+def index(request: fastapi.Request):
+    return templates.TemplateResponse('index.html', {'request': request, 'ip': f"http://{os.environ.get('VLC_SERVER_IP')}"})
