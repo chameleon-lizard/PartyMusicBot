@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="En">
+    <head>
+        <style>
+            html,body{height:100% !important;width:100% !important; margin:0px; padding:0px;}
+
+            .page {height:20% !important; width:100% !important;}
+        </style>
+        <title>Party player host</title>
+    </head>
+    <body>
+        <div style="display:flex;justify-content:center;align-items:center;height:100%;width:100%;background-color:#d1820c">
+            <audio id="player" autoplay onended="document.location.reload()">
+                  <source src="{{ ip }}" type="audio/mpeg">
+                  Your browser does not support the audio element.
+            </audio>
+            <div>
+                <button onclick="togglePlay()" id="play_button" style="background-color: transparent;border: none">
+                    <svg id="play_svg" xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 384 512" style="height:10em;width:max-content;display: flex">
+                        <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path fill="#723b06" d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/>
+                    </svg>
+                    <svg id="pause_svg" xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512" style="height:10em;width:max-content;display: none">
+                        <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                        <path fill="#723b06" d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </body>
+
+    <script>
+        let Player = document.getElementById('player');
+        let play_svg = document.getElementById('play_svg');
+        let pause_svg = document.getElementById('pause_svg');
+
+        function setDisplayValue(element, value) {
+            if (element)
+                element.style.display = value
+        }
+
+        function togglePlay() {
+            if (Player) {
+                if (Player.paused) {
+                    setDisplayValue(play_svg, 'none');
+                    setDisplayValue(pause_svg, 'flex');
+                    Player.play()
+                } else {
+                    setDisplayValue(play_svg, 'flex');
+                    setDisplayValue(pause_svg, 'none');
+                    Player.pause()
+                }
+            }
+        }
+    </script>
+</html>
+
