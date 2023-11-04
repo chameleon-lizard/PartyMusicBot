@@ -18,50 +18,46 @@ bot = telebot.TeleBot(
     threaded=True,
 )
 
+button_markup = telebot.types.ReplyKeyboardMarkup(row_width=2)
+button_markup.add(telebot.types.KeyboardButton('Queue'))
+button_markup.add(telebot.types.KeyboardButton('History'))
+button_markup.add(telebot.types.KeyboardButton('Now playing'))
+button_markup.add(telebot.types.KeyboardButton('Help'))
 
-@bot.message_handler(commands=['help', 'start'])
+
+@bot.message_handler(func=lambda message: message.text in ('/start', '/help', 'Help'))
 def welcome(message: telebot.types.Message) -> None:
     bot.reply_to(
         message=message,
-        text="Hi there! I am a bot that can organize music queue during parties. Here are the commands: \n- "
-             "/add_song - add a song to the queue. Alternatively, just send the link into the bot. \n- "
-             "/now_playing - check what's playing right now, what was the last song and what is the currently "
-             "selected next song \n- /queue - check the current queue"
+        text="Hi there! I am a bot that can organize music queue during parties. Send a link to youtube video into "
+             "the bot to put it into queue. Here are the commands: \n-"
+             "Now playing - check what's playing right now, what was the last song and what is the currently "
+             "selected next song \n- Queue - check the current queue\n- History - check the history of played songs\n"
+             "- Help - show this message.",
+        reply_markup=button_markup,
     )
 
 
-@bot.message_handler(commands=['add_song'])
-def add_song(message: telebot.types.Message) -> None:
-    url = message.text[10:]
-
-    logging.info(f'User @{message.from_user.username} with id {message.from_user.id} added url: {url}')
-
-    response = requests.post(
-        url=f"http://{os.environ.get('SERVER_IP')}/add_song",
-        data=json.dumps(
-            {
-                'url': url,
-                'suggested_by': f'@{message.from_user.username}',
-            }
-        )
-    ).json()
-
-    bot.reply_to(
-        message=message,
-        text=utils.get_song_text(song_dict=response),
-    )
-
-
-@bot.message_handler(commands=['now_playing'])
+@bot.message_handler(func=lambda message: message.text in ('Now playing',))
 def now_playing(message: telebot.types.Message) -> None:
-    response = requests.get(
-        url=f"http://{os.environ.get('SERVER_IP')}/now_playing",
-    ).json()
+    try:
+        response = requests.get(
+            url=f"http://{os.environ.get('SERVER_IP')}/now_playing",
+        ).json()
+    except requests.exceptions.ConnectionError:
+        bot.reply_to(
+            message=message,
+            text='Cannot connect to server.',
+            reply_markup=button_markup,
+        )
+
+        return
 
     if response['Result']['url'] is None and response['Result']['name'] is None:
         bot.reply_to(
             message=message,
             text='Nothing is playing.',
+            reply_markup=button_markup,
         )
 
         return
@@ -69,6 +65,7 @@ def now_playing(message: telebot.types.Message) -> None:
     bot.reply_to(
         message=message,
         text=utils.get_song_text(song_dict=response),
+        reply_markup=button_markup,
     )
 
     utils.send_audio(
@@ -79,11 +76,20 @@ def now_playing(message: telebot.types.Message) -> None:
     )
 
 
-@bot.message_handler(commands=['history'])
+@bot.message_handler(func=lambda message: message.text in ('History',))
 def history(message: telebot.types.Message) -> None:
-    response = requests.get(
-        url=f"http://{os.environ.get('SERVER_IP')}/history",
-    ).json()
+    try:
+        response = requests.get(
+            url=f"http://{os.environ.get('SERVER_IP')}/history",
+        ).json()
+    except requests.exceptions.ConnectionError:
+        bot.reply_to(
+            message=message,
+            text='Cannot connect to server.',
+            reply_markup=button_markup,
+        )
+
+        return
 
     if len(response['Result']) == 0:
         bot.reply_to(
@@ -98,6 +104,7 @@ def history(message: telebot.types.Message) -> None:
         text='\n'.join(
             f'{idx + 1}: {utils.get_song_text(song_dict=_)}' for idx, _ in enumerate(response['Result'])
         ),
+        reply_markup=button_markup,
     )
 
     for song in response['Result']:
@@ -109,11 +116,20 @@ def history(message: telebot.types.Message) -> None:
         )
 
 
-@bot.message_handler(commands=['queue'])
+@bot.message_handler(func=lambda message: message.text in ('Queue',))
 def queue(message: telebot.types.Message) -> None:
-    response = requests.get(
-        url=f"http://{os.environ.get('SERVER_IP')}/check_queue",
-    ).json()
+    try:
+        response = requests.get(
+            url=f"http://{os.environ.get('SERVER_IP')}/check_queue",
+        ).json()
+    except requests.exceptions.ConnectionError:
+        bot.reply_to(
+            message=message,
+            text='Cannot connect to server.',
+            reply_markup=button_markup,
+        )
+
+        return
 
     if len(response['Result']) == 0:
         bot.reply_to(
@@ -128,7 +144,47 @@ def queue(message: telebot.types.Message) -> None:
         text='\n'.join(
             f'{idx + 1}: {utils.get_song_text(song_dict=_)}' for idx, _ in enumerate(response['Result'])
         ),
+        reply_markup=button_markup,
     )
+
+
+@bot.message_handler(content_types=['text'])
+def add_song(message: telebot.types.Message) -> None:
+    url = message.text
+
+    logging.info(f'User @{message.from_user.username} with id {message.from_user.id} added url: {url}')
+
+    try:
+        response = requests.post(
+            url=f"http://{os.environ.get('SERVER_IP')}/add_song",
+            data=json.dumps(
+                {
+                    'url': url,
+                    'suggested_by': f'@{message.from_user.username}',
+                }
+            )
+        ).json()
+    except requests.exceptions.ConnectionError:
+        bot.reply_to(
+            message=message,
+            text='Cannot connect to server.',
+            reply_markup=button_markup,
+        )
+
+        return
+
+    if isinstance(response['Result'], str):
+        bot.reply_to(
+            message=message,
+            text=response['Result'],
+            reply_markup=button_markup,
+        )
+    else:
+        bot.reply_to(
+            message=message,
+            text=utils.get_song_text(song_dict=response),
+            reply_markup=button_markup,
+        )
 
 
 def start_bot() -> None:

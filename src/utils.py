@@ -38,7 +38,7 @@ class SnapshotQueue(queue.Queue):
 
 
 def check_url(url: str) -> bool:
-    youtube_url_regex_pattern = r'^(https?\:\/\/)?((www\.)?youtube\.com|youtu\.be)\/.+$'
+    youtube_url_regex_pattern = r'^(https?\:\/\/)?((www\.|music\.)?youtube\.com|youtu\.be)\/.+$'
     return re.match(pattern=youtube_url_regex_pattern, string=url) is not None
 
 
@@ -58,8 +58,8 @@ def download_song(url: str, suggested_by: str) -> Song:
         error_code = ydl.download([url])
         song_info = [ydl.extract_info(url, download=False)][0]
 
-        shutil.move(f"{song_info['id']}.mp3", f"music_cache/{song_info['id']}.mp3")
-        song_path = pathlib.Path(__file__).parent.parent / pathlib.Path(f"music_cache/{song_info['id']}.mp3")
+        shutil.move(f"{song_info['id']}.mp3", f"music_cache/{song_info['title']}.mp3")
+        song_path = pathlib.Path(__file__).parent.parent / pathlib.Path(f"music_cache/{song_info['title']}.mp3")
 
         if error_code != 0:
             raise ValueError(f'Youtube download error: Error code {error_code}.')

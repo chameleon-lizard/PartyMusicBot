@@ -1,4 +1,4 @@
 src/__pycache__/
-music_cache/
+music_cache/*
 .idea/
 venv/
