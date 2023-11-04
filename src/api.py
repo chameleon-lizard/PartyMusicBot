@@ -33,7 +33,7 @@ def add_song(
         logging.error(msg=f'Incorrect URL: {added_song.url}')
 
         return {
-            'Result': f'Incorrect URL: {added_song.url}',
+            'Result': f'Error: incorrect URL: {added_song.url}',
         }
 
     # If the song is already in history, using the same song
@@ -58,16 +58,10 @@ def add_song(
         if not isinstance(song, utils.Song):
             logging.error(msg=f'Youtube-dl returned error: {str(song)}, URL: {added_song.url}')
             return {
-                'Result': f'Youtube-dl returned error: {str(song)}, URL: {added_song.url}',
+                'Result': f'Error: youtube-dl returned error: {str(song)}, URL: {added_song.url}',
             }
 
-    try:
-        player.queue.put(song)
-    except server.playsound.PlaysoundException as e:
-        logging.error(msg=f'Playsound error: {str(e)}, Song: {song}')
-        return {
-            'Result': f'Playsound error: {str(e)}, Song: {song}',
-        }
+    player.queue.put(song)
 
     return {
         'Result': song.to_dict(),

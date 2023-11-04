@@ -173,11 +173,18 @@ def add_song(message: telebot.types.Message) -> None:
 
         return
 
-    bot.reply_to(
-        message=message,
-        text=utils.get_song_text(song_dict=response),
-        reply_markup=button_markup,
-    )
+    if isinstance(response['Result'], str):
+        bot.reply_to(
+            message=message,
+            text=response['Result'],
+            reply_markup=button_markup,
+        )
+    else:
+        bot.reply_to(
+            message=message,
+            text=utils.get_song_text(song_dict=response),
+            reply_markup=button_markup,
+        )
 
 
 def start_bot() -> None:
