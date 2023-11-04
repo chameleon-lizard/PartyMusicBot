@@ -99,15 +99,17 @@ def history(message: telebot.types.Message) -> None:
 
         return
 
+    song_history = response['Result'][:10]
+
     bot.reply_to(
         message=message,
         text='\n'.join(
-            f'{idx + 1}: {utils.get_song_text(song_dict=_)}' for idx, _ in enumerate(response['Result'])
+            f'{idx + 1}: {utils.get_song_text(song_dict=_)}' for idx, _ in enumerate(song_history)
         ),
         reply_markup=button_markup,
     )
 
-    for song in response['Result']:
+    for song in song_history:
         utils.send_audio(
             path=song['song_path'],
             chat_id=message.chat.id,
