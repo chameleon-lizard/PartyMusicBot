@@ -30,27 +30,7 @@ def welcome(message: telebot.types.Message) -> None:
     )
 
 
-@bot.message_handler(commands=['add_song'])
-def add_song(message: telebot.types.Message) -> None:
-    url = message.text[10:]
-
-    logging.info(f'User @{message.from_user.username} with id {message.from_user.id} added url: {url}')
-
-    response = requests.post(
-        url=f"http://{os.environ.get('SERVER_IP')}/add_song",
-        data=json.dumps(
-            {
-                'url': url,
-                'suggested_by': f'@{message.from_user.username}',
-            }
-        )
-    ).json()
-
-    bot.reply_to(
-        message=message,
-        text=utils.get_song_text(song_dict=response),
-    )
-
+@bot.message_handler(func=lambda message: message.text in ('Now playing',))
 
 @bot.message_handler(commands=['now_playing'])
 def now_playing(message: telebot.types.Message) -> None:
@@ -128,6 +108,27 @@ def queue(message: telebot.types.Message) -> None:
         text='\n'.join(
             f'{idx + 1}: {utils.get_song_text(song_dict=_)}' for idx, _ in enumerate(response['Result'])
         ),
+
+@bot.message_handler(content_types=['text'])
+def add_song(message: telebot.types.Message) -> None:
+    url = message.text
+
+    logging.info(f'User @{message.from_user.username} with id {message.from_user.id} added url: {url}')
+
+    response = requests.post(
+        url=f"http://{os.environ.get('SERVER_IP')}/add_song",
+        data=json.dumps(
+            {
+                'url': url,
+                'suggested_by': f'@{message.from_user.username}',
+            }
+        )
+    ).json()
+
+    bot.reply_to(
+        message=message,
+        text=utils.get_song_text(song_dict=response),
+        reply_markup=button_markup,
     )
 
 
