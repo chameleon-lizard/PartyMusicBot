@@ -30,7 +30,7 @@ def welcome(message: telebot.types.Message) -> None:
     bot.reply_to(
         message=message,
         text="Hi there! I am a bot that can organize music queue during parties. Send a link to youtube video into "
-             "the bot to put it into queue. Here are the commands: \n-"
+             "the bot to put it into queue. Here are the commands: \n- "
              "Now playing - check what's playing right now, what was the last song and what is the currently "
              "selected next song \n- Queue - check the current queue\n- History - check the history of played songs\n"
              "- Help - show this message.",
