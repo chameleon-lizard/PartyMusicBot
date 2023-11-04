@@ -40,9 +40,18 @@ def welcome(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text in ('Now playing',))
 def now_playing(message: telebot.types.Message) -> None:
-    response = requests.get(
-        url=f"http://{os.environ.get('SERVER_IP')}/now_playing",
-    ).json()
+    try:
+        response = requests.get(
+            url=f"http://{os.environ.get('SERVER_IP')}/now_playing",
+        ).json()
+    except requests.exceptions.ConnectionError:
+        bot.reply_to(
+            message=message,
+            text='Cannot connect to server.',
+            reply_markup=button_markup,
+        )
+
+        return
 
     if response['Result']['url'] is None and response['Result']['name'] is None:
         bot.reply_to(
@@ -69,9 +78,18 @@ def now_playing(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text in ('History',))
 def history(message: telebot.types.Message) -> None:
-    response = requests.get(
-        url=f"http://{os.environ.get('SERVER_IP')}/history",
-    ).json()
+    try:
+        response = requests.get(
+            url=f"http://{os.environ.get('SERVER_IP')}/history",
+        ).json()
+    except requests.exceptions.ConnectionError:
+        bot.reply_to(
+            message=message,
+            text='Cannot connect to server.',
+            reply_markup=button_markup,
+        )
+
+        return
 
     if len(response['Result']) == 0:
         bot.reply_to(
@@ -100,9 +118,18 @@ def history(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text in ('Queue',))
 def queue(message: telebot.types.Message) -> None:
-    response = requests.get(
-        url=f"http://{os.environ.get('SERVER_IP')}/check_queue",
-    ).json()
+    try:
+        response = requests.get(
+            url=f"http://{os.environ.get('SERVER_IP')}/check_queue",
+        ).json()
+    except requests.exceptions.ConnectionError:
+        bot.reply_to(
+            message=message,
+            text='Cannot connect to server.',
+            reply_markup=button_markup,
+        )
+
+        return
 
     if len(response['Result']) == 0:
         bot.reply_to(
@@ -127,15 +154,24 @@ def add_song(message: telebot.types.Message) -> None:
 
     logging.info(f'User @{message.from_user.username} with id {message.from_user.id} added url: {url}')
 
-    response = requests.post(
-        url=f"http://{os.environ.get('SERVER_IP')}/add_song",
-        data=json.dumps(
-            {
-                'url': url,
-                'suggested_by': f'@{message.from_user.username}',
-            }
+    try:
+        response = requests.post(
+            url=f"http://{os.environ.get('SERVER_IP')}/add_song",
+            data=json.dumps(
+                {
+                    'url': url,
+                    'suggested_by': f'@{message.from_user.username}',
+                }
+            )
+        ).json()
+    except requests.exceptions.ConnectionError:
+        bot.reply_to(
+            message=message,
+            text='Cannot connect to server.',
+            reply_markup=button_markup,
         )
-    ).json()
+
+        return
 
     bot.reply_to(
         message=message,
