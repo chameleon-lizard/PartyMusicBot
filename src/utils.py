@@ -38,7 +38,7 @@ class SnapshotQueue(queue.Queue):
 
 
 def check_url(url: str) -> bool:
-    youtube_url_regex_pattern = r'^(https?\:\/\/)?((www\.)?youtube\.com|youtu\.be)\/.+$'
+    youtube_url_regex_pattern = r'^(https?\:\/\/)?((www\.|music\.)?youtube\.com|youtu\.be)\/.+$'
     return re.match(pattern=youtube_url_regex_pattern, string=url) is not None
 
 
