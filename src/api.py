@@ -22,7 +22,8 @@ dotenv.load_dotenv('venv/.env')
 
 class AddSongBaseModel(pydantic.BaseModel):
     url: str
-    suggested_by: str
+    user_id: str
+    username: str
 
 
 @app.post('/add_song')
@@ -36,6 +37,11 @@ def add_song(
             'Result': f'Error: incorrect URL: {added_song.url}',
         }
 
+    suggested_by = utils.User(
+        user_id=added_song.id,
+        username=added_song.username,
+    )
+
     # If the song is already in history, using the same song
     try:
         cached_song = next((_ for _ in player.history + player.queue.snapshot() if _.url == added_song.url))
@@ -43,13 +49,13 @@ def add_song(
             url=cached_song.url,
             song_path=cached_song.song_path,
             name=cached_song.name,
-            suggested_by=added_song.suggested_by,
+            suggested_by=suggested_by,
         )
     except StopIteration:
         downloader.input_queue.put(
             (
                 added_song.url,
-                added_song.suggested_by,
+                suggested_by,
             )
         )
 

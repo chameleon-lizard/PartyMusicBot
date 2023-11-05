@@ -162,7 +162,8 @@ def add_song(message: telebot.types.Message) -> None:
             data=json.dumps(
                 {
                     'url': url,
-                    'suggested_by': f'@{message.from_user.username}',
+                    'user_id': f'{message.from_user.id}',
+                    'username': f'@{message.from_user.username}',
                 }
             )
         ).json()
