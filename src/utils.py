@@ -13,6 +13,18 @@ logging.basicConfig(format='%(levelname)s: %(message)s"', level=logging.INFO)
 
 
 @dataclasses.dataclass
+class User:
+    user_id: str | None = None
+    username: str | None = None
+
+    def to_dict(self):
+        return {
+            'user_id': self.user_id,
+            'username': self.username,
+        }
+
+
+@dataclasses.dataclass
 class Song:
     url: str | None = None
     song_path: pathlib.Path | None = None
