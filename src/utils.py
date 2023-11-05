@@ -29,14 +29,14 @@ class Song:
     url: str | None = None
     song_path: pathlib.Path | None = None
     name: str | None = None
-    suggested_by: str | None = None
+    suggested_by: User | None = None
 
     def to_dict(self) -> dict:
         return {
             'url': self.url,
             'song_path': str(self.song_path),
             'name': self.name,
-            'suggested_by': self.suggested_by,
+            'suggested_by': self.suggested_by.to_dict(),
         }
 
     def __str__(self):
@@ -54,7 +54,7 @@ def check_url(url: str) -> bool:
     return re.match(pattern=youtube_url_regex_pattern, string=url) is not None
 
 
-def download_song(url: str, suggested_by: str) -> Song:
+def download_song(url: str, suggested_by: User) -> Song:
     ydl_opts = {
         'format': 'm4a/bestaudio/best',
         'outtmpl': '%(id)s.%(ext)s',
@@ -65,7 +65,7 @@ def download_song(url: str, suggested_by: str) -> Song:
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        logging.info(msg=f'Downloading video: {url}')
+        logging.info(msg=f'Downloading video: {url}, user: {suggested_by}')
 
         error_code = ydl.download([url])
         song_info = [ydl.extract_info(url, download=False)][0]
@@ -107,5 +107,5 @@ def get_song_text(song_dict: dict) -> str:
     if 'Result' in song_dict:
         song_dict = song_dict['Result']
 
-    suggested_by = song_dict['suggested_by'].replace('_', r'\_')
+    suggested_by = song_dict['suggested_by']['username'].replace('_', r'\_')
     return f"[{song_dict['name']}]({song_dict['url']}) - suggested by {suggested_by}"
