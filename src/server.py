@@ -72,6 +72,7 @@ class Player(threading.Thread):
                 time.sleep(1)
 
             self.media_list.remove_index(1)
+            self._voters_to_skip = set()
 
     def skip(self, user: utils.User) -> str:
         self._voters_to_skip.add(str(user.to_dict()))
