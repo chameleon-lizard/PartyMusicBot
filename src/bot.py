@@ -22,6 +22,7 @@ button_markup = telebot.types.ReplyKeyboardMarkup(row_width=2)
 button_markup.add(telebot.types.KeyboardButton('Queue'))
 button_markup.add(telebot.types.KeyboardButton('History'))
 button_markup.add(telebot.types.KeyboardButton('Now playing'))
+button_markup.add(telebot.types.KeyboardButton('Skip'))
 button_markup.add(telebot.types.KeyboardButton('Help'))
 
 
@@ -128,6 +129,34 @@ def history(message: telebot.types.Message) -> None:
             name=song['name'],
             token=os.environ.get('BOT_TOKEN'),
         )
+
+
+@bot.message_handler(func=lambda message: message.text in ('Skip',))
+def skip(message: telebot.types.Message) -> None:
+    try:
+        response = requests.post(
+            url=f"http://{os.environ.get('SERVER_IP')}/skip",
+            data=json.dumps(
+                {
+                    'user_id': f'{message.from_user.id}',
+                    'username': f'@{message.from_user.username}',
+                }
+            ),
+        ).json()
+    except requests.exceptions.ConnectionError:
+        bot.reply_to(
+            message=message,
+            text='Cannot connect to server.',
+            reply_markup=button_markup,
+        )
+
+        return
+
+    bot.reply_to(
+        message=message,
+        text=response['Result'],
+        reply_markup=button_markup,
+    )
 
 
 @bot.message_handler(func=lambda message: message.text in ('Queue',))

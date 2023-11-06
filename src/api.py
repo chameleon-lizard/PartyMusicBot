@@ -81,8 +81,14 @@ def add_song(
     }
 
 
-@app.get('/now_playing')
-def now_playing():
+@app.post('/skip')
+def skip(user: UserBaseModel):
+    player.users.add(user.model_dump_json())
+
+    res = player.skip(user.convert_to_user())
+    return {
+        'Result': f'{res}',
+    }
 
 
 @app.post('/now_playing')
@@ -115,6 +121,6 @@ def check_queue(user: UserBaseModel):
 templates = Jinja2Templates(directory='templates')
 
 
-@app.post('/', response_class=fastapi.responses.HTMLResponse)
+@app.get('/', response_class=fastapi.responses.HTMLResponse)
 def index(request: fastapi.Request):
     return templates.TemplateResponse('index.html', {'request': request, 'ip': f"http://{os.environ.get('VLC_SERVER_IP')}"})
