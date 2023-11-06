@@ -20,27 +20,34 @@ downloader.start()
 dotenv.load_dotenv('venv/.env')
 
 
+class UserBaseModel(pydantic.BaseModel):
+    user_id: str | None = None
+    username: str | None = None
+
+    def convert_to_user(self) -> utils.User:
+        return utils.User(
+            user_id=self.user_id,
+            username=self.username,
+        )
+
+
 class AddSongBaseModel(pydantic.BaseModel):
     url: str
-    user_id: str
-    username: str
+    user: UserBaseModel
 
 
 @app.post('/add_song')
 def add_song(
     added_song: AddSongBaseModel,
 ):
+    player.users.add(added_song.user.model_dump_json())
+
     if not utils.check_url(url=added_song.url):
         logging.error(msg=f'Incorrect URL: {added_song.url}')
 
         return {
             'Result': f'Error: incorrect URL: {added_song.url}',
         }
-
-    suggested_by = utils.User(
-        user_id=added_song.id,
-        username=added_song.username,
-    )
 
     # If the song is already in history, using the same song
     try:
@@ -49,13 +56,13 @@ def add_song(
             url=cached_song.url,
             song_path=cached_song.song_path,
             name=cached_song.name,
-            suggested_by=suggested_by,
+            suggested_by=added_song.user.convert_to_user(),
         )
     except StopIteration:
         downloader.input_queue.put(
             (
                 added_song.url,
-                suggested_by,
+                added_song.user.convert_to_user(),
             )
         )
 
@@ -76,20 +83,30 @@ def add_song(
 
 @app.get('/now_playing')
 def now_playing():
+
+
+@app.post('/now_playing')
+def now_playing(user: UserBaseModel):
+    player.users.add(user.model_dump_json())
+
     return {
         'Result': player.now_playing.to_dict(),
     }
 
 
-@app.get('/history')
-def get_history():
+@app.post('/history')
+def get_history(user: UserBaseModel):
+    player.users.add(user.model_dump_json())
+
     return {
         'Result': list(map(lambda _: _.to_dict(), player.history)),
     }
 
 
-@app.get('/check_queue')
-def check_queue():
+@app.post('/check_queue')
+def check_queue(user: UserBaseModel):
+    player.users.add(user.model_dump_json())
+
     return {
         'Result': player.queue.snapshot(),
     }
@@ -98,6 +115,6 @@ def check_queue():
 templates = Jinja2Templates(directory='templates')
 
 
-@app.get('/', response_class=fastapi.responses.HTMLResponse)
+@app.post('/', response_class=fastapi.responses.HTMLResponse)
 def index(request: fastapi.Request):
     return templates.TemplateResponse('index.html', {'request': request, 'ip': f"http://{os.environ.get('VLC_SERVER_IP')}"})
