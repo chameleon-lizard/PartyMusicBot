@@ -41,8 +41,14 @@ def welcome(message: telebot.types.Message) -> None:
 @bot.message_handler(func=lambda message: message.text in ('Now playing',))
 def now_playing(message: telebot.types.Message) -> None:
     try:
-        response = requests.get(
+        response = requests.post(
             url=f"http://{os.environ.get('SERVER_IP')}/now_playing",
+            data=json.dumps(
+                {
+                    'user_id': f'{message.from_user.id}',
+                    'username': f'@{message.from_user.username}',
+                }
+            ),
         ).json()
     except requests.exceptions.ConnectionError:
         bot.reply_to(
@@ -79,8 +85,14 @@ def now_playing(message: telebot.types.Message) -> None:
 @bot.message_handler(func=lambda message: message.text in ('History',))
 def history(message: telebot.types.Message) -> None:
     try:
-        response = requests.get(
+        response = requests.post(
             url=f"http://{os.environ.get('SERVER_IP')}/history",
+            data=json.dumps(
+                {
+                    'user_id': f'{message.from_user.id}',
+                    'username': f'@{message.from_user.username}',
+                }
+            ),
         ).json()
     except requests.exceptions.ConnectionError:
         bot.reply_to(
@@ -121,8 +133,15 @@ def history(message: telebot.types.Message) -> None:
 @bot.message_handler(func=lambda message: message.text in ('Queue',))
 def queue(message: telebot.types.Message) -> None:
     try:
-        response = requests.get(
+        # TODO: User not created
+        response = requests.post(
             url=f"http://{os.environ.get('SERVER_IP')}/check_queue",
+            data=json.dumps(
+                {
+                    'user_id': f'{message.from_user.id}',
+                    'username': f'@{message.from_user.username}',
+                }
+            ),
         ).json()
     except requests.exceptions.ConnectionError:
         bot.reply_to(
@@ -162,10 +181,12 @@ def add_song(message: telebot.types.Message) -> None:
             data=json.dumps(
                 {
                     'url': url,
-                    'user_id': f'{message.from_user.id}',
-                    'username': f'@{message.from_user.username}',
+                    'user': {
+                        'user_id': f'{message.from_user.id}',
+                        'username': f'@{message.from_user.username}',
+                    },
                 }
-            )
+            ),
         ).json()
     except requests.exceptions.ConnectionError:
         bot.reply_to(
