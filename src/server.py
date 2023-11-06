@@ -27,6 +27,9 @@ class Player(threading.Thread):
         self.history = []
         self.users = set()
 
+        # Creating container which holds people who want to skip the song
+        self._voters_to_skip = set()
+
         # Creating VLC instance, player and playlist
         self.vlc_instance = vlc.Instance()
         self.player = vlc.MediaListPlayer()
@@ -69,6 +72,28 @@ class Player(threading.Thread):
                 time.sleep(1)
 
             self.media_list.remove_index(1)
+
+    def skip(self, user: utils.User) -> str:
+        self._voters_to_skip.add(str(user.to_dict()))
+
+        logging.info(self._voters_to_skip)
+        logging.info(len(self._voters_to_skip))
+        logging.info(len(self.users))
+
+        logging.info(len(self._voters_to_skip) >= math.floor(len(self.users) / 3))
+
+        if len(self._voters_to_skip) >= math.floor(len(self.users) / 3):
+            self.media_list.remove_index(1)
+
+            # Some VLC black magic
+            self.player.next()
+            self.player.next()
+
+            self._voters_to_skip = set()
+
+            return 'Skipping song...'
+
+        return f'Votes: {len(self._voters_to_skip)}/{math.floor(len(self.users) / 3) if len(self.users) > 3 else 1}'
 
 
 class Downloader(threading.Thread):
