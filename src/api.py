@@ -81,8 +81,14 @@ def add_song(
     }
 
 
-@app.get('/now_playing')
-def now_playing():
+@app.post('/skip')
+def skip(user: UserBaseModel):
+    player.users.add(user.model_dump_json())
+
+    res = player.skip(user.convert_to_user())
+    return {
+        'Result': f'{res}',
+    }
 
 
 @app.post('/now_playing')
