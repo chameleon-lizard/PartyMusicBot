@@ -1,5 +1,6 @@
 import concurrent.futures
 import logging
+import math
 import queue
 import threading
 import time
@@ -20,10 +21,11 @@ class Player(threading.Thread):
     def __init__(self):
         super(Player, self).__init__()
 
-        # Creating song queue and history
+        # Creating song queue, users set and history
         self.queue = utils.SnapshotQueue()
         self.now_playing = utils.Song()
         self.history = []
+        self.users = set()
 
         # Creating VLC instance, player and playlist
         self.vlc_instance = vlc.Instance()
