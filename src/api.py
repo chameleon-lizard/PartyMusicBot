@@ -115,6 +115,6 @@ def check_queue(user: UserBaseModel):
 templates = Jinja2Templates(directory='templates')
 
 
-@app.post('/', response_class=fastapi.responses.HTMLResponse)
+@app.get('/', response_class=fastapi.responses.HTMLResponse)
 def index(request: fastapi.Request):
     return templates.TemplateResponse('index.html', {'request': request, 'ip': f"http://{os.environ.get('VLC_SERVER_IP')}"})
