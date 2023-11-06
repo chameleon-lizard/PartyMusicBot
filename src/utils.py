@@ -36,7 +36,7 @@ class Song:
             'url': self.url,
             'song_path': str(self.song_path),
             'name': self.name,
-            'suggested_by': self.suggested_by.to_dict(),
+            'suggested_by': self.suggested_by.to_dict() if self.suggested_by is not None else User().to_dict(),
         }
 
     def __str__(self):
