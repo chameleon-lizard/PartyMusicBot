@@ -40,8 +40,6 @@ class AddSongBaseModel(pydantic.BaseModel):
 def add_song(
     added_song: AddSongBaseModel,
 ):
-    player.users.add(added_song.user.model_dump_json())
-
     if not utils.check_url(url=added_song.url):
         logging.error(msg=f'Incorrect URL: {added_song.url}')
 
@@ -83,36 +81,28 @@ def add_song(
 
 @app.post('/skip')
 def skip(user: UserBaseModel):
-    player.users.add(user.model_dump_json())
-
     res = player.skip(user.convert_to_user())
     return {
         'Result': f'{res}',
     }
 
 
-@app.post('/now_playing')
-def now_playing(user: UserBaseModel):
-    player.users.add(user.model_dump_json())
-
+@app.get('/now_playing')
+def now_playing():
     return {
         'Result': player.now_playing.to_dict(),
     }
 
 
-@app.post('/history')
-def get_history(user: UserBaseModel):
-    player.users.add(user.model_dump_json())
-
+@app.get('/history')
+def get_history():
     return {
         'Result': list(map(lambda _: _.to_dict(), player.history)),
     }
 
 
-@app.post('/check_queue')
-def check_queue(user: UserBaseModel):
-    player.users.add(user.model_dump_json())
-
+@app.get('/check_queue')
+def check_queue():
     return {
         'Result': player.queue.snapshot(),
     }
