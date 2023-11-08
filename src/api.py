@@ -81,6 +81,11 @@ def add_song(
 
 @app.post('/skip')
 def skip(user: UserBaseModel):
+    if user.model_dump_json() not in player.users:
+        return {
+            'Result': 'User not in system. Use Start button to register!'
+        }
+
     res = player.skip(user.convert_to_user())
     return {
         'Result': f'{res}',
@@ -96,6 +101,15 @@ def now_playing():
 
 @app.get('/history')
 def get_history():
+    return {
+        'Result': list(map(lambda _: _.to_dict(), player.history)),
+    }
+
+
+@app.post('/register')
+def register(user: UserBaseModel):
+    player.users.add(user.model_dump_json())
+
     return {
         'Result': list(map(lambda _: _.to_dict(), player.history)),
     }
