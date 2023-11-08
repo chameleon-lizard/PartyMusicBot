@@ -28,6 +28,24 @@ button_markup.add(telebot.types.KeyboardButton('Help'))
 
 @bot.message_handler(func=lambda message: message.text in ('/start', '/help', 'Help'))
 def welcome(message: telebot.types.Message) -> None:
+    try:
+        requests.post(
+            url=f"http://{os.environ.get('SERVER_IP')}/register",
+            data=json.dumps(
+                {
+                    'user_id': f'{message.from_user.id}',
+                    'username': f'@{message.from_user.username}',
+                }
+            ),
+        ).json()
+    except requests.exceptions.ConnectionError:
+        bot.reply_to(
+            message=message,
+            text='Cannot connect to server.',
+            reply_markup=button_markup,
+        )
+
+        return
     bot.reply_to(
         message=message,
         text="Hi there! I am a bot that can organize music queue during parties. Send a link to youtube video into "
@@ -42,14 +60,8 @@ def welcome(message: telebot.types.Message) -> None:
 @bot.message_handler(func=lambda message: message.text in ('Now playing',))
 def now_playing(message: telebot.types.Message) -> None:
     try:
-        response = requests.post(
+        response = requests.get(
             url=f"http://{os.environ.get('SERVER_IP')}/now_playing",
-            data=json.dumps(
-                {
-                    'user_id': f'{message.from_user.id}',
-                    'username': f'@{message.from_user.username}',
-                }
-            ),
         ).json()
     except requests.exceptions.ConnectionError:
         bot.reply_to(
@@ -86,14 +98,8 @@ def now_playing(message: telebot.types.Message) -> None:
 @bot.message_handler(func=lambda message: message.text in ('History',))
 def history(message: telebot.types.Message) -> None:
     try:
-        response = requests.post(
+        response = requests.get(
             url=f"http://{os.environ.get('SERVER_IP')}/history",
-            data=json.dumps(
-                {
-                    'user_id': f'{message.from_user.id}',
-                    'username': f'@{message.from_user.username}',
-                }
-            ),
         ).json()
     except requests.exceptions.ConnectionError:
         bot.reply_to(
@@ -162,15 +168,8 @@ def skip(message: telebot.types.Message) -> None:
 @bot.message_handler(func=lambda message: message.text in ('Queue',))
 def queue(message: telebot.types.Message) -> None:
     try:
-        # TODO: User not created
-        response = requests.post(
+        response = requests.get(
             url=f"http://{os.environ.get('SERVER_IP')}/check_queue",
-            data=json.dumps(
-                {
-                    'user_id': f'{message.from_user.id}',
-                    'username': f'@{message.from_user.username}',
-                }
-            ),
         ).json()
     except requests.exceptions.ConnectionError:
         bot.reply_to(
