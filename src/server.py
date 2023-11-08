@@ -77,12 +77,6 @@ class Player(threading.Thread):
     def skip(self, user: utils.User) -> str:
         self._voters_to_skip.add(str(user.to_dict()))
 
-        logging.info(self._voters_to_skip)
-        logging.info(len(self._voters_to_skip))
-        logging.info(len(self.users))
-
-        logging.info(len(self._voters_to_skip) >= math.floor(len(self.users) / 3))
-
         if len(self._voters_to_skip) >= math.floor(len(self.users) / 3):
             self.media_list.remove_index(1)
 
