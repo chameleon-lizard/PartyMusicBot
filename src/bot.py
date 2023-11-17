@@ -52,7 +52,7 @@ def welcome(message: telebot.types.Message) -> None:
              "the bot to put it into queue. Here are the commands: \n- "
              "Now playing - check what's playing right now, what was the last song and what is the currently "
              "selected next song \n- Queue - check the current queue\n- History - check the history of played songs\n"
-             "- Help - show this message.",
+             "- `/add_song_anon` <url> - add song anonymously\n- Help - show this message.",
         reply_markup=button_markup,
     )
 
@@ -195,6 +195,49 @@ def queue(message: telebot.types.Message) -> None:
         ),
         reply_markup=button_markup,
     )
+
+
+@bot.message_handler(func=lambda message: message.text.startswith('/add_song_anon'))
+def add_song_anon(message: telebot.types.Message) -> None:
+    url = message.text[15:]
+
+    logging.info(f'User @{message.from_user.username} with id {message.from_user.id} anonimously added url: {url}')
+
+    try:
+        response = requests.post(
+            url=f"http://{os.environ.get('SERVER_IP')}/add_song",
+            data=json.dumps(
+                {
+                    'url': url,
+                    'user': {
+                        'user_id': 'Anon',
+                        'username': 'Anonimous user',
+                    },
+                }
+            ),
+        ).json()
+    except requests.exceptions.ConnectionError:
+        bot.reply_to(
+            message=message,
+            text='Cannot connect to server.',
+            reply_markup=button_markup,
+        )
+
+        return
+
+    if isinstance(response['Result'], str):
+        bot.reply_to(
+            message=message,
+            text=response['Result'],
+            reply_markup=button_markup,
+        )
+    else:
+        bot.reply_to(
+            message=message,
+            text=utils.get_song_text(song_dict=response),
+            reply_markup=button_markup,
+        )
+
 
 
 @bot.message_handler(content_types=['text'])
