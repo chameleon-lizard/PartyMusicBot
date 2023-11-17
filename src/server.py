@@ -25,10 +25,10 @@ class Player(threading.Thread):
         self.queue = utils.SnapshotQueue()
         self.now_playing = utils.Song()
         self.history = []
-        self.users = set()
+        self.users = []
 
         # Creating container which holds people who want to skip the song
-        self._voters_to_skip = set()
+        self._voters_to_skip = list()
 
         # Creating VLC instance, player and playlist
         self.vlc_instance = vlc.Instance()
@@ -72,20 +72,23 @@ class Player(threading.Thread):
                 time.sleep(1)
 
             self.media_list.remove_index(1)
-            self._voters_to_skip = set()
+            self._voters_to_skip = list()
 
-    def skip(self, user: utils.User) -> str:
-        self._voters_to_skip.add(str(user.to_dict()))
+    def skip(self) -> None:
+        self.media_list.remove_index(1)
+
+        # Some VLC black magic
+        self.player.next()
+        self.player.next()
+
+        self._voters_to_skip = list()
+
+    def add_voter(self, user: utils.User) -> str:
+        if user not in self._voters_to_skip:
+            self._voters_to_skip.append(user)
 
         if len(self._voters_to_skip) >= math.floor(len(self.users) / 3):
-            self.media_list.remove_index(1)
-
-            # Some VLC black magic
-            self.player.next()
-            self.player.next()
-
-            self._voters_to_skip = set()
-
+            self.skip()
             return 'Skipping song...'
 
         return f'Votes: {len(self._voters_to_skip)}/{math.floor(len(self.users) / 3) if len(self.users) > 3 else 1}'

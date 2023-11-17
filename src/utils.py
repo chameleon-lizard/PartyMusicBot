@@ -86,6 +86,43 @@ def download_song(url: str, suggested_by: User) -> Song:
         return video
 
 
+def get_song_text(song_dict: dict) -> str:
+    if 'Result' in song_dict:
+        song_dict = song_dict['Result']
+
+    suggested_by = song_dict['suggested_by']['username'].replace('_', r'\_')
+    return f"[{song_dict['name']}]({song_dict['url']}) - suggested by {suggested_by}"
+
+
+def send_history_to_all_users(users: list[User], history: list[Song], token: str) -> None:
+    if len(history) > 0:
+        # Creating formatted history string
+        history_string = "Thanks for the party! Here's the song history:\n\n"
+
+        history_string += '\n'.join(
+            f'{idx + 1}: {get_song_text(song_dict=_.to_dict())}' for idx, _ in enumerate(history)
+        )
+    else:
+        history_string = "Thanks for the party! No songs were played :("
+
+    logging.info(f'History string: {history_string}')
+
+    for user in users:
+        logging.info(f'Sending message to {user}')
+
+        payload = {
+            'chat_id': user.user_id,
+            'text': history_string,
+            'parse_mode': 'Markdown',
+        }
+
+        res = requests.post(
+            url=f"https://api.telegram.org/bot{token}/sendMessage",
+            data=payload,
+        )
+        logging.info(res)
+
+
 def send_audio(path: pathlib.Path | str, chat_id: int, name: str, token: str) -> None:
     with open(path, 'rb') as audio:
         payload = {
@@ -101,11 +138,3 @@ def send_audio(path: pathlib.Path | str, chat_id: int, name: str, token: str) ->
             data=payload,
             files=files
         ).json()
-
-
-def get_song_text(song_dict: dict) -> str:
-    if 'Result' in song_dict:
-        song_dict = song_dict['Result']
-
-    suggested_by = song_dict['suggested_by']['username'].replace('_', r'\_')
-    return f"[{song_dict['name']}]({song_dict['url']}) - suggested by {suggested_by}"

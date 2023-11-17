@@ -79,14 +79,38 @@ def add_song(
     }
 
 
+@app.get('/stop_party')
+def stop_party():
+    utils.send_history_to_all_users(
+        users=player.users,
+        history=player.history,
+        token=os.environ.get('BOT_TOKEN'),
+    )
+
+    logging.info('Removing all users, clearing queue, playlist and history, setting now_playing to empty song.')
+    player.users = []
+    player.history = []
+    suggester.song_playlist = []
+    player.now_playing = utils.Song()
+    with player.queue.mutex:
+        player.queue.queue.clear()
+
+    logging.info('Stopping playback')
+    player.skip()
+
+    return {
+        'Result': 'Party ended!'
+    }
+
+
 @app.post('/skip')
 def skip(user: UserBaseModel):
-    if user.model_dump_json() not in player.users:
+    if user.convert_to_user() not in player.users:
         return {
             'Result': 'User not in system. Use Start button to register!'
         }
 
-    res = player.skip(user.convert_to_user())
+    res = player.add_voter(user.convert_to_user())
     return {
         'Result': f'{res}',
     }
@@ -108,10 +132,11 @@ def get_history():
 
 @app.post('/register')
 def register(user: UserBaseModel):
-    player.users.add(user.model_dump_json())
+    if user.convert_to_user() not in player.users:
+        player.users.append(user.convert_to_user())
 
     return {
-        'Result': list(map(lambda _: _.to_dict(), player.history)),
+        'Result': 'Success!',
     }
 
 
