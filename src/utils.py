@@ -58,6 +58,7 @@ def download_song(url: str, suggested_by: User) -> Song:
     ydl_opts = {
         'format': 'm4a/bestaudio/best',
         'outtmpl': '%(id)s.%(ext)s',
+        'ignoreerrors': True,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
