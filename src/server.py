@@ -1,7 +1,11 @@
 import concurrent.futures
+import json
 import logging
 import math
 import queue
+import random
+
+import requests
 import threading
 import time
 
@@ -10,6 +14,9 @@ import vlc
 from src import utils
 
 logging.basicConfig(format='%(levelname)s: %(message)s"', level=logging.INFO)
+
+
+PLAYLIST_SLEEP_TIME = 30
 
 
 class Player(threading.Thread):
@@ -72,6 +79,7 @@ class Player(threading.Thread):
                 time.sleep(1)
 
             self.media_list.remove_index(1)
+            self.now_playing = utils.Song()
             self._voters_to_skip = list()
 
     def skip(self) -> None:
@@ -140,3 +148,79 @@ class Downloader(threading.Thread):
 
                     # remove the now completed future
                     del future_to_song[future]
+
+
+class PlaylistSuggester(threading.Thread):
+    """
+    Class for the backend which suggests songs from a party playlist if nothing is playing.
+
+    """
+
+    def __init__(self, server_ip: str):
+        super(PlaylistSuggester, self).__init__()
+
+        self.host_user = utils.User()
+        self.song_playlist = []
+        self._server_ip = server_ip
+
+    def run(self):
+        while True:
+            # If the playlist is empty, do nothing
+            if not self.song_playlist:
+                time.sleep(5)
+                continue
+
+            # Getting info about playback
+            response = requests.get(
+                url=f"http://{self._server_ip}/now_playing",
+            ).json()
+
+            # If nothing is playing, adding song via API
+            if response['Result']['url'] is None and response['Result']['name'] is None:
+                requests.post(
+                    url=f"http://{self._server_ip}/add_song",
+                    data=json.dumps(
+                        {
+                            'url': random.choice(self.song_playlist),
+                            'user': self.host_user.to_dict(),
+                        }
+                    ),
+                )
+
+            time.sleep(PLAYLIST_SLEEP_TIME)
+
+    def add_playlist(self, playlist: str, host_name: str) -> None:
+        # Changing the party host name
+        self.host_user = utils.User(
+            username=host_name,
+            user_id='not_defined',
+        )
+
+        # Creating youtube-dlp option list
+        ydl_opts = {
+            'outtmpl': '%(id)s%(ext)s',
+            'ignoreerrors': True,
+        }
+
+        # Getting urls of videos to put in queue
+        with utils.yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            try:
+                result = ydl.extract_info(
+                    playlist,
+                    download=False,
+                )  # We just want to extract the info
+            except utils.yt_dlp.DownloadError:
+                logging.info('Download error')
+
+            if 'entries' in result:
+                # Can be a playlist or a list of videos
+                video = result['entries']
+
+                # loops entries to grab each video_url
+                for item in video:
+                    logging.info(f"Found video url: {item['webpage_url']}")
+                    self.song_playlist.append(item['webpage_url'])
+
+    def delete_playlist(self):
+        self.host_user = utils.User()
+        self.song_playlist = []
