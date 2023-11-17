@@ -218,8 +218,11 @@ class PlaylistSuggester(threading.Thread):
 
                 # loops entries to grab each video_url
                 for item in video:
-                    logging.info(f"Found video url: {item['webpage_url']}")
-                    self.song_playlist.append(item['webpage_url'])
+                    try:
+                        logging.info(f"Found video url: {item['webpage_url']}")
+                        self.song_playlist.append(item['webpage_url'])
+                    except TypeError:
+                        continue
 
     def delete_playlist(self):
         self.host_user = utils.User()
