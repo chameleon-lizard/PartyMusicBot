@@ -9,6 +9,9 @@ from fastapi.templating import Jinja2Templates
 from src import server
 from src import utils
 
+
+dotenv.load_dotenv('venv/.env')
+
 app = fastapi.FastAPI()
 
 player = server.Player()
@@ -17,7 +20,10 @@ player.start()
 downloader = server.Downloader()
 downloader.start()
 
-dotenv.load_dotenv('venv/.env')
+suggester = server.PlaylistSuggester(
+    server_ip=os.environ.get('SERVER_IP'),
+)
+suggester.start()
 
 
 class UserBaseModel(pydantic.BaseModel):
@@ -34,6 +40,11 @@ class UserBaseModel(pydantic.BaseModel):
 class AddSongBaseModel(pydantic.BaseModel):
     url: str
     user: UserBaseModel
+
+
+class AddPlaylistBaseModel(pydantic.BaseModel):
+    url: str
+    host_name: str
 
 
 @app.post('/add_song')
@@ -77,6 +88,21 @@ def add_song(
     return {
         'Result': song.to_dict(),
     }
+
+
+@app.post('/start_party')
+def start_party(
+    playlist: AddPlaylistBaseModel,
+):
+    if not utils.check_url(playlist.url):
+        return {
+            'Result': 'Invalid url'
+        }
+
+    suggester.add_playlist(
+        playlist=playlist.url,
+        host_name=playlist.host_name,
+    )
 
 
 @app.get('/stop_party')
