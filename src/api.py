@@ -58,6 +58,14 @@ def add_song(
             'Result': f'Error: incorrect URL: {added_song.url}',
         }
 
+    if utils.check_for_playlist(url=added_song.url):
+        logging.error(msg=f'URL is a playlist, wont add: {added_song.url}')
+
+        return {
+            'Result': f'Error: URL is a playilst, wont add: {added_song.url}',
+        }
+
+
     # If the song is already in history, using the same song
     try:
         cached_song = next((_ for _ in player.history + player.queue.snapshot() if _.url == added_song.url))

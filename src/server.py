@@ -45,7 +45,7 @@ class Player(threading.Thread):
         # Creating parameter string for VLC
         self.sout = \
             ('sout=#transcode{vcodec=none,acodec=mp3,ab=128,channels=2,samplerate=44100,scodec=none}:http{mux=mp3,'
-             'dst=:8080/}')
+             'dst=:45555/}')
 
         # Creating and adding the silence between the songs so VLC will not stop streaming
         silence = self.vlc_instance.media_new(

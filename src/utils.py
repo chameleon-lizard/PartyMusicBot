@@ -54,6 +54,10 @@ def check_url(url: str) -> bool:
     return re.match(pattern=youtube_url_regex_pattern, string=url) is not None
 
 
+def check_for_playlist(url: str) -> bool:
+    return any(map(lambda _: _ in url, ['list',]))
+
+
 def download_song(url: str, suggested_by: User) -> Song:
     ydl_opts = {
         'format': 'm4a/bestaudio/best',
