@@ -4,7 +4,10 @@ import os
 import dotenv
 import fastapi
 import pydantic
+from fastapi import Depends, HTTPException
+from fastapi import status as fastapi_status
 from fastapi.templating import Jinja2Templates
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src import server
 from src import utils
@@ -13,6 +16,8 @@ from src import utils
 dotenv.load_dotenv('venv/.env')
 
 app = fastapi.FastAPI()
+
+security = HTTPBearer()
 
 player = server.Player()
 player.start()
@@ -45,6 +50,12 @@ class AddSongBaseModel(pydantic.BaseModel):
 class AddPlaylistBaseModel(pydantic.BaseModel):
     url: str
     host_name: str
+
+
+def check_user_token(
+    user_token: HTTPAuthorizationCredentials,
+):
+    return user_token != os.environ.get('ADMIN_TOKEN')
 
 
 @app.post('/add_song')
@@ -101,7 +112,14 @@ def add_song(
 @app.post('/start_party')
 def start_party(
     playlist: AddPlaylistBaseModel,
+    user_token: HTTPAuthorizationCredentials = Depends(security),
 ):
+    if not check_user_token(user_token):
+        raise HTTPException(
+            status_code=fastapi_status.HTTP_403_FORBIDDEN,
+            detail='Insufficient privileges for this operation',
+        )
+
     if not utils.check_url(playlist.url):
         return {
             'Result': 'Invalid url'
@@ -114,7 +132,15 @@ def start_party(
 
 
 @app.get('/stop_party')
-def stop_party():
+def stop_party(
+    user_token: HTTPAuthorizationCredentials = Depends(security)
+):
+    if not check_user_token(user_token):
+        raise HTTPException(
+            status_code=fastapi_status.HTTP_403_FORBIDDEN,
+            detail='Insufficient privileges for this operation',
+        )
+    
     utils.send_history_to_all_users(
         users=player.users,
         history=player.history,
