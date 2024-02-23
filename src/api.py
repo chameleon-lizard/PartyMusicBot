@@ -104,7 +104,16 @@ def check_user_token(
 @app.post('/add_song')
 def add_song(
     added_song: AddSongBaseModel,
-):
+) -> dict:
+    """
+    Adds a song to the player queue.
+
+    :param added_song: The song to add
+
+    :return: Dictionary with added song info or error message
+
+    """
+    # Checking if the url is not for Youtube/YTM
     if not utils.check_url(url=added_song.url):
         logging.error(msg=f'Incorrect URL: {added_song.url}')
 
@@ -112,20 +121,22 @@ def add_song(
             'Result': f'Error: incorrect URL: {added_song.url}',
         }
 
+    # Checking if the url is a playlist url, since we don't want someone to send a long playlist
     if utils.check_for_playlist(url=added_song.url):
-        logging.error(msg=f'URL is a playlist, wont add: {added_song.url}')
+        logging.error(msg=f"URL is a playlist, won't add: {added_song.url}")
 
         return {
-            'Result': f'Error: URL is a playilst, wont add: {added_song.url}',
+            'Result': f"Error: URL is a playlist, won't add: {added_song.url}",
         }
 
+    # Check if the user is spamming many songs in the row
     if sum(map(lambda _: _.suggested_by.username == added_song.user.username, player.queue.snapshot())) >= 3:
         return {
             'Result': 'Too many added songs in queue. Please try again later, when your other songs have been played!'
         }
 
-    # If the song is already in history, using the same song
     try:
+        # Checking if the song has been downloaded to add songs automatically
         cached_song = next((_ for _ in player.history + player.queue.snapshot() if _.url == added_song.url))
         song = utils.Song(
             url=cached_song.url,
@@ -134,6 +145,7 @@ def add_song(
             suggested_by=added_song.user.convert_to_user(),
         )
     except StopIteration:
+        # If no songs were found, adding a task to the downloader to download a song
         downloader.input_queue.put(
             (
                 added_song.url,
@@ -141,14 +153,17 @@ def add_song(
             )
         )
 
+        # Getting a song from the downloader
         song = downloader.output_queue.get()
 
+        # If yt-dlp did not download a song, it does not return the song
         if not isinstance(song, utils.Song):
             logging.error(msg=f'Youtube-dl returned error: {str(song)}, URL: {added_song.url}')
             return {
                 'Result': f'Error: youtube-dl returned error: {str(song)}, URL: {added_song.url}',
             }
 
+    # Adding a song to the queue, returning the result
     player.queue.put(song)
 
     return {
