@@ -19,10 +19,18 @@ logging.basicConfig(format='%(levelname)s: %(message)s"', level=logging.INFO)
 
 @dataclasses.dataclass
 class User:
+    """
+    Dataclass for user info.
+
+    """
     user_id: str | None = None
     username: str | None = None
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, str | None]:
+        """
+        Method that converts class to a dictionary with user info.
+
+        """
         return {
             'user_id': self.user_id,
             'username': self.username,
