@@ -65,7 +65,15 @@ class Song:
 
 
 class SnapshotQueue(queue.Queue):
+    """
+    Custom queue class, which can return a snapshot of the queue items. Needed, since queues are synchronized.
+
+    """
     def snapshot(self) -> list:
+        """
+        Method that returns a snapshot of the queue items.
+
+        """
         with self.mutex:
             return list(self.queue)
 
