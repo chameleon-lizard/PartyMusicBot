@@ -92,6 +92,14 @@ def check_url(url: str) -> bool:
 
 
 def check_for_playlist(url: str) -> bool:
+    """
+    Checks if the url is a playlist link.
+
+    :param url: Youtube url of the song to download
+
+    :return: True if url is a playlist url
+
+    """
     return any(map(lambda _: _ in url, ['list',]))
 
 
