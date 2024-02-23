@@ -70,6 +70,10 @@ class UserBaseModel(pydantic.BaseModel):
 
 
 class AddSongBaseModel(pydantic.BaseModel):
+    """
+    BaseModel for the song addition.
+
+    """
     url: str
     user: UserBaseModel
 
