@@ -49,10 +49,20 @@ suggester.start()
 
 
 class UserBaseModel(pydantic.BaseModel):
+    """
+    BaseModel for the user.
+
+    """
     user_id: str | None = None
     username: str | None = None
 
     def convert_to_user(self) -> utils.User:
+        """
+        Converts the BaseModel into a User object.
+
+        :return: A User object
+
+        """
         return utils.User(
             user_id=self.user_id,
             username=self.username,
