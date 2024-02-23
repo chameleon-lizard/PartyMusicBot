@@ -26,26 +26,52 @@ button_markup.add(telebot.types.KeyboardButton('Skip'))
 button_markup.add(telebot.types.KeyboardButton('Help'))
 
 
-@bot.message_handler(func=lambda message: message.text in ('/start', '/help', 'Help'))
-def welcome(message: telebot.types.Message) -> None:
+def register_new_user(
+    message: telebot.types.Message,
+    user_id: str,
+    username: str,
+) -> bool:
+    """
+    Register a new user in the backend.
+
+    :param message: Telegram message handle
+    :param user_id: User id
+    :param username: Username
+
+    :return: True if user was registered, False if connection to server was not completed.
+    """
     try:
         requests.post(
             url=f"http://{os.environ.get('SERVER_IP')}/register",
             data=json.dumps(
                 {
-                    'user_id': f'{message.from_user.id}',
-                    'username': f'@{message.from_user.username}',
+                    'user_id': f'{user_id}',
+                    'username': f'@{username}',
                 }
             ),
         ).json()
+
+        return True
     except requests.exceptions.ConnectionError:
+        logging.info(f'Could not register user: {user_id}, @{username}')
         bot.reply_to(
             message=message,
             text='Cannot connect to server.',
             reply_markup=button_markup,
         )
 
+        return False
+
+
+@bot.message_handler(func=lambda message: message.text in ('/start', '/help', 'Help'))
+def welcome(message: telebot.types.Message) -> None:
+    if not register_new_user(
+        message=message,
+        user_id=message.from_user.id,
+        username=message.from_user.username,
+    ):
         return
+
     bot.reply_to(
         message=message,
         text="Hi there! I am a bot that can organize music queue during parties. Send a link to youtube video into "
@@ -64,6 +90,13 @@ def welcome(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text in ('Now playing',))
 def now_playing(message: telebot.types.Message) -> None:
+    if not register_new_user(
+        message=message,
+        user_id=message.from_user.id,
+        username=message.from_user.username,
+    ):
+        return
+
     try:
         response = requests.get(
             url=f"http://{os.environ.get('SERVER_IP')}/now_playing",
@@ -102,6 +135,13 @@ def now_playing(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text in ('History',))
 def history(message: telebot.types.Message) -> None:
+    if not register_new_user(
+        message=message,
+        user_id=message.from_user.id,
+        username=message.from_user.username,
+    ):
+        return
+
     try:
         response = requests.get(
             url=f"http://{os.environ.get('SERVER_IP')}/history",
@@ -144,6 +184,13 @@ def history(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text in ('Skip',))
 def skip(message: telebot.types.Message) -> None:
+    if not register_new_user(
+        message=message,
+        user_id=message.from_user.id,
+        username=message.from_user.username,
+    ):
+        return
+
     try:
         response = requests.post(
             url=f"http://{os.environ.get('SERVER_IP')}/skip",
@@ -172,6 +219,13 @@ def skip(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text in ('Queue',))
 def queue(message: telebot.types.Message) -> None:
+    if not register_new_user(
+        message=message,
+        user_id=message.from_user.id,
+        username=message.from_user.username,
+    ):
+        return
+
     try:
         response = requests.get(
             url=f"http://{os.environ.get('SERVER_IP')}/check_queue",
@@ -204,6 +258,13 @@ def queue(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text.startswith('/add_song_anon'))
 def add_song_anon(message: telebot.types.Message) -> None:
+    if not register_new_user(
+        message=message,
+        user_id=message.from_user.id,
+        username=message.from_user.username,
+    ):
+        return
+
     url = message.text[15:]
 
     logging.info(f'User @{message.from_user.username} with id {message.from_user.id} anonimously added url: {url}')
@@ -247,6 +308,13 @@ def add_song_anon(message: telebot.types.Message) -> None:
 
 @bot.message_handler(content_types=['text'])
 def add_song(message: telebot.types.Message) -> None:
+    if not register_new_user(
+        message=message,
+        user_id=message.from_user.id,
+        username=message.from_user.username,
+    ):
+        return
+
     url = message.text
 
     logging.info(f'User @{message.from_user.username} with id {message.from_user.id} added url: {url}')
