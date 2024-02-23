@@ -207,6 +207,17 @@ def send_history_to_all_users(users: list[User], history: list[Song], token: str
 
 
 def send_audio(path: pathlib.Path | str, chat_id: int, name: str, token: str) -> None:
+    """
+    Sends an audio via Telegram API. Needed, since Telebot does not have this function.
+
+    :param path: Path to audio file
+    :param chat_id: Telegram chat id to send the song to
+    :param name: Name of the song to send
+    :param token: Telegram bot token
+
+    :return: None
+
+    """
     with open(path, 'rb') as audio:
         payload = {
             'chat_id': chat_id,
