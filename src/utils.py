@@ -167,8 +167,18 @@ def get_song_text(song_dict: dict) -> str:
 
 
 def send_history_to_all_users(users: list[User], history: list[Song], token: str) -> None:
+    """
+    Sends history to all users.
+
+    :param users: List of users to send history to
+    :param history: List of songs that was played during this party
+    :param token: Telegram bot token
+
+    :return: None
+
+    """
+    # Formatting the history string
     if len(history) > 0:
-        # Creating formatted history string
         history_string = "Thanks for the party! Here's the song history:\n\n"
 
         history_string += '\n'.join(
@@ -179,6 +189,7 @@ def send_history_to_all_users(users: list[User], history: list[Song], token: str
 
     logging.info(f'History string: {history_string}')
 
+    # Sending message with history to all users
     for user in users:
         logging.info(f'Sending message to {user}')
 
