@@ -290,7 +290,13 @@ def now_playing() -> dict:
 
 
 @app.get('/history')
-def get_history():
+def get_history() -> dict:
+    """
+    Returns history of played songs.
+
+    :return: Dictionary with results
+
+    """
     return {
         'Result': list(map(lambda _: _.to_dict(), player.history)),
     }
