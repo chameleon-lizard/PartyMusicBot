@@ -1,3 +1,20 @@
+"""
+Api for the PartyMusicBot. Supports the following endpoints
+
+1. /add_song: Add a song to the queue. The user needs to pass the URL of the song, as well as their username and user ID
+(optional).
+2. /start_party: Start the party by adding a playlist. The user should provide the URL of the playlist and the host name
+for it.
+3. /stop_party: Stop the party by emptying the queue, clearing the history, and ending playback. The user needs to pass
+their username and user ID (optional).
+4. /skip: Skip a song. The user should provide their username and user ID (optional).
+5. /now_playing: Get information about the currently playing song.
+6. /history: Get a list of all songs played so far.
+7. /register: Register a new user with the system. The user should provide their username and user ID (optional).
+8. /check_queue: Get a snapshot of the current queue, including all songs that have been added but not yet played.
+
+"""
+
 import logging
 import os
 
