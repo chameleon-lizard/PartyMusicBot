@@ -65,6 +65,13 @@ def register_new_user(
 
 @bot.message_handler(func=lambda message: message.text in ('/start', '/help', 'Help'))
 def welcome(message: telebot.types.Message) -> None:
+    """
+    Handle the user's first message to the bot, sending a greeting and instructions on how to use the bot. Registers new users.
+
+    :param message: The message object received from the user.
+
+    :return: None
+    """
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -90,6 +97,13 @@ def welcome(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text in ('Now playing',))
 def now_playing(message: telebot.types.Message) -> None:
+    """
+    Returns the currently playing song. Registers new users.
+
+    :param message: The message object received from the user.
+
+    :return: None
+    """
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -135,6 +149,13 @@ def now_playing(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text in ('History',))
 def history(message: telebot.types.Message) -> None:
+    """
+    Returns the last 10 songs or less to user. Registers new users.
+
+    :param message: The message object received from the user.
+
+    :return: None
+    """
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -184,6 +205,13 @@ def history(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text in ('Skip',))
 def skip(message: telebot.types.Message) -> None:
+    """
+    Starts the vote for skipping the song. Registers new users.
+
+    :param message: The message object received from the user.
+
+    :return: None
+    """
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -219,6 +247,13 @@ def skip(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text in ('Queue',))
 def queue(message: telebot.types.Message) -> None:
+    """
+    Shows the queue of songs. Registers new users.
+
+    :param message: The message object received from the user.
+
+    :return: None
+    """
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -258,6 +293,13 @@ def queue(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text.startswith('/add_song_anon'))
 def add_song_anon(message: telebot.types.Message) -> None:
+    """
+    Adds new song anonimously. Registers new users.
+
+    :param message: The message object received from the user.
+
+    :return: None
+    """
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -308,6 +350,13 @@ def add_song_anon(message: telebot.types.Message) -> None:
 
 @bot.message_handler(content_types=['text'])
 def add_song(message: telebot.types.Message) -> None:
+    """
+    Adds new song. Registers new users.
+
+    :param message: The message object received from the user.
+
+    :return: None
+    """
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -356,4 +405,9 @@ def add_song(message: telebot.types.Message) -> None:
 
 
 def start_bot() -> None:
+    """
+    Starts the bot.
+
+    :return: None
+    """
     bot.infinity_polling()
