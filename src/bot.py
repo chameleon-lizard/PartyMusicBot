@@ -72,6 +72,9 @@ def welcome(message: telebot.types.Message) -> None:
 
     :return: None
     """
+    logging.info(f'User: {message.from_user.id}, @{message.from_user.username} pressed "Help" or /start.')
+
+    # Registering new user
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -79,6 +82,7 @@ def welcome(message: telebot.types.Message) -> None:
     ):
         return
 
+    # Replying with welcome message
     bot.reply_to(
         message=message,
         text="Hi there! I am a bot that can organize music queue during parties. Send a link to youtube video into "
