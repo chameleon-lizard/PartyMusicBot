@@ -9,11 +9,10 @@ import logging
 import math
 import queue
 import random
-
-import requests
 import threading
 import time
 
+import requests
 import vlc
 
 from src import utils
@@ -67,6 +66,7 @@ class Player(threading.Thread):
         :return: None
 
         """
+        logging.info('Player started.')
         while True:
             # Dirty hack to wait for songs
             if self.queue.empty():
@@ -106,6 +106,7 @@ class Player(threading.Thread):
         :return: None
 
         """
+        logging.info('Skipping song...')
         self.media_list.remove_index(1)
 
         # Some VLC black magic
@@ -170,6 +171,8 @@ class Downloader(threading.Thread):
                     # fetch an url and suggested_by from the queue
                     url, suggested_by = self.input_queue.get()
 
+                    logging.info(f'User {suggested_by} added song to the downloader queue: {url}')
+
                     # Start the load operation and mark the future with its URL
                     future_to_song[executor.submit(utils.download_song, url, suggested_by)] = url
 
@@ -178,6 +181,8 @@ class Downloader(threading.Thread):
                     url = future_to_song[future]
                     try:
                         result = future.result()
+
+                        logging.info(f'Song {url} successfully downloaded.')
 
                         self.output_queue.put(result)
                     except Exception as e:
@@ -221,11 +226,14 @@ class PlaylistSuggester(threading.Thread):
 
             # If nothing is playing, adding a song via API
             if response['Result']['url'] is None and response['Result']['name'] is None:
+                song = random.choice(self.song_playlist)
+                logging.info(f'Adding song {song} from the party playlist.')
+
                 requests.post(
                     url=f"http://{self._server_ip}/add_song",
                     data=json.dumps(
                         {
-                            'url': random.choice(self.song_playlist),
+                            'url': song,
                             'user': self.host_user.to_dict(),
                         }
                     ),

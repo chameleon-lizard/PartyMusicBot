@@ -23,12 +23,11 @@ import fastapi
 import pydantic
 from fastapi import Depends, HTTPException
 from fastapi import status as fastapi_status
-from fastapi.templating import Jinja2Templates
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.templating import Jinja2Templates
 
 from src import server
 from src import utils
-
 
 dotenv.load_dotenv('venv/.env')
 
@@ -131,6 +130,7 @@ def add_song(
 
     # Check if the user is spamming many songs in the row
     if sum(map(lambda _: _.suggested_by.username == added_song.user.username, player.queue.snapshot())) >= 3:
+        logging.info(f'User @{added_song.user.convert_to_user().to_dict()} tried to add fourth song.')
         return {
             'Result': 'Too many added songs in queue. Please try again later, when your other songs have been played!'
         }
@@ -144,7 +144,10 @@ def add_song(
             name=cached_song.name,
             suggested_by=added_song.user.convert_to_user(),
         )
+        logging.info(f'Song {song.name} found in cache: "{song.song_path}"')
     except StopIteration:
+        logging.info(f'Song not found, adding url "{added_song.url}" to downloader.')
+
         # If no songs were found, adding a task to the downloader to download a song
         downloader.input_queue.put(
             (
@@ -164,6 +167,7 @@ def add_song(
             }
 
     # Adding a song to the queue, returning the result
+    logging.info(f'Song {song.name} added to queue.')
     player.queue.put(song)
 
     return {
@@ -185,6 +189,7 @@ def start_party(
     :return: Dictionary with result status
 
     """
+    logging.info(f'Attempt to start party: {playlist.host_name}, {playlist.url}, {user_token.model_dump_json()}')
     # If not authenticated
     if not check_user_token(user_token):
         raise HTTPException(
@@ -221,6 +226,7 @@ def stop_party(
     :return: Dictionary with result status
 
     """
+    logging.info(f'Attempt to stop party: {user_token.model_dump_json()}')
     # If not authenticated
     if not check_user_token(user_token):
         raise HTTPException(
@@ -265,11 +271,13 @@ def skip(user: UserBaseModel) -> dict:
     """
     # If not registered
     if user.convert_to_user() not in player.users:
+        logging.info(f'User {user.convert_to_user()} voted for skipping the song, but was unregistered.')
         return {
             'Result': 'User not in system. Use Start button to register!'
         }
 
     # Adding a voter to player class and returning results
+    logging.info(f'User {user.convert_to_user()} voted for skipping the song!')
     res = player.add_voter(user.convert_to_user())
     return {
         'Result': f'{res}',
@@ -347,4 +355,6 @@ def index(request: fastapi.Request) -> fastapi.responses.HTMLResponse:
     :return: HTML page with user player
 
     """
-    return templates.TemplateResponse('index.html', {'request': request, 'ip': f"http://{os.environ.get('VLC_SERVER_IP')}"})
+    return templates.TemplateResponse(
+        'index.html', {'request': request, 'ip': f"http://{os.environ.get('VLC_SERVER_IP')}"}
+    )
