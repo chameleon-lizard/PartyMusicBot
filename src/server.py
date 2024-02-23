@@ -1,3 +1,8 @@
+"""
+Server module, which contains Player, Downloader and PlaylistSuggester classes.
+
+"""
+
 import concurrent.futures
 import json
 import logging
@@ -21,7 +26,7 @@ PLAYLIST_SLEEP_TIME = 30
 
 class Player(threading.Thread):
     """
-    Class for the backend player that manages history, queue and now playing.
+    Class for the backend player that manages history, queue and song skipping.
 
     """
 
@@ -56,33 +61,51 @@ class Player(threading.Thread):
         self.media_list.add_media(silence)
 
     def run(self) -> None:
+        """
+        Starts the player thread.
+
+        :return: None
+
+        """
         while True:
+            # Dirty hack to wait for songs
             if self.queue.empty():
                 self.player.play()
                 time.sleep(1)
                 continue
 
+            # Getting the song to play
             song = self.queue.get_nowait()
 
             logging.info(f'Playing song: {song.name}')
 
+            # Adding song to history and to now_playing
             self.now_playing = song
             self.history.append(song)
 
+            # Adding the song to VLC media list and starting the playback
             mrl = f'file://{song.song_path.absolute()}'
 
             m = self.vlc_instance.media_new(mrl, self.sout)
             self.media_list.add_media(m)
             self.player.play()
 
+            # Dirty hack for waiting until the end of the song
             while self.player.is_playing():
                 time.sleep(1)
 
+            # Removing the song from VLC media list, setting default song to now_playing, clearing the skip voters list
             self.media_list.remove_index(1)
             self.now_playing = utils.Song()
             self._voters_to_skip = list()
 
     def skip(self) -> None:
+        """
+        Skips the current playing song
+
+        :return: None
+
+        """
         self.media_list.remove_index(1)
 
         # Some VLC black magic
@@ -92,9 +115,18 @@ class Player(threading.Thread):
         self._voters_to_skip = list()
 
     def add_voter(self, user: utils.User) -> str:
+        """
+        Adds voter for skipping.
+
+        :param user: User that voted for skipping current song
+
+        :return: None
+
+        """
         if user not in self._voters_to_skip:
             self._voters_to_skip.append(user)
 
+        # Only skip if 1/3 of the people voted to skip the song
         if len(self._voters_to_skip) >= math.floor(len(self.users) / 3):
             self.skip()
             return 'Skipping song...'
@@ -117,6 +149,12 @@ class Downloader(threading.Thread):
         self.pool = concurrent.futures.ProcessPoolExecutor
 
     def run(self) -> None:
+        """
+        Runs the downloader thread.
+
+        :return: None
+
+        """
         with self.pool() as executor:
             future_to_song = {}
             while True:
@@ -164,6 +202,12 @@ class PlaylistSuggester(threading.Thread):
         self._server_ip = server_ip
 
     def run(self):
+        """
+        Runs the PlaylistSuggester thread.
+
+        :return: None
+
+        """
         while True:
             # If the playlist is empty, do nothing
             if not self.song_playlist:
@@ -175,7 +219,7 @@ class PlaylistSuggester(threading.Thread):
                 url=f"http://{self._server_ip}/now_playing",
             ).json()
 
-            # If nothing is playing, adding song via API
+            # If nothing is playing, adding a song via API
             if response['Result']['url'] is None and response['Result']['name'] is None:
                 requests.post(
                     url=f"http://{self._server_ip}/add_song",
@@ -190,6 +234,15 @@ class PlaylistSuggester(threading.Thread):
             time.sleep(PLAYLIST_SLEEP_TIME)
 
     def add_playlist(self, playlist: str, host_name: str) -> None:
+        """
+        Adds a new playlist to the suggester.
+
+        :param playlist: An url for the playlist
+        :param host_name: Name of the host of the party
+
+        :return: None
+
+        """
         # Changing the party host name
         self.host_user = utils.User(
             username=host_name,
@@ -225,5 +278,11 @@ class PlaylistSuggester(threading.Thread):
                         continue
 
     def delete_playlist(self):
+        """
+        Clears the playlist.
+
+        :return: None
+
+        """
         self.host_user = utils.User()
         self.song_playlist = []

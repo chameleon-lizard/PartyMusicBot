@@ -1,8 +1,6 @@
 """
 Reference implementation of the telegram bot for PartyMusicBot. Uses `.env` file located at `$project_root/venv/.env`.
 
-To run: `python bot.py`
-
 """
 
 import json

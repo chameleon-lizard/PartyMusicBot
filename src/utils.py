@@ -1,3 +1,8 @@
+"""
+Utils module with functions, used in bot, server and api.
+
+"""
+
 import dataclasses
 import json
 import logging
@@ -14,10 +19,18 @@ logging.basicConfig(format='%(levelname)s: %(message)s"', level=logging.INFO)
 
 @dataclasses.dataclass
 class User:
+    """
+    Dataclass for user info.
+
+    """
     user_id: str | None = None
     username: str | None = None
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, str | None]:
+        """
+        Method that converts class to a dictionary with user info.
+
+        """
         return {
             'user_id': self.user_id,
             'username': self.username,
@@ -26,12 +39,20 @@ class User:
 
 @dataclasses.dataclass
 class Song:
+    """
+    Dataclass for song info.
+
+    """
     url: str | None = None
     song_path: pathlib.Path | None = None
     name: str | None = None
     suggested_by: User | None = None
 
     def to_dict(self) -> dict:
+        """
+        Method that converts class to a dictionary with user info.
+
+        """
         return {
             'url': self.url,
             'song_path': str(self.song_path),
@@ -44,21 +65,56 @@ class Song:
 
 
 class SnapshotQueue(queue.Queue):
+    """
+    Custom queue class, which can return a snapshot of the queue items. Needed, since queues are synchronized.
+
+    """
     def snapshot(self) -> list:
+        """
+        Method that returns a snapshot of the queue items.
+
+        """
         with self.mutex:
             return list(self.queue)
 
 
 def check_url(url: str) -> bool:
+    """
+    Checks if the url is a valid Youtube/Youtube Music link.
+
+    :param url: Youtube url of the song to download
+
+    :return: True if url is a playlist url
+    
+    """
     youtube_url_regex_pattern = r'^(https?\:\/\/)?((www\.|music\.)?youtube\.com|youtu\.be)\/.+$'
     return re.match(pattern=youtube_url_regex_pattern, string=url) is not None
 
 
 def check_for_playlist(url: str) -> bool:
+    """
+    Checks if the url is a playlist link.
+
+    :param url: Youtube url of the song to download
+
+    :return: True if url is a playlist url
+
+    """
     return any(map(lambda _: _ in url, ['list',]))
 
 
 def download_song(url: str, suggested_by: User) -> Song:
+    """
+    Function, which downloads the song from the Youtube via yt_dlp. It does this by first downloading the song to cwd
+    and then moving it into the music_cache folder.
+
+    :param url: Youtube url of the song to download
+    :param suggested_by: User, who suggested the song
+
+    :return: Song object
+
+    """
+    # Defining yt_dlp options
     ydl_opts = {
         'format': 'm4a/bestaudio/best',
         'outtmpl': '%(id)s.%(ext)s',
@@ -70,17 +126,20 @@ def download_song(url: str, suggested_by: User) -> Song:
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        # Downloading video
         logging.info(msg=f'Downloading video: {url}, user: {suggested_by}')
 
         error_code = ydl.download([url])
         song_info = [ydl.extract_info(url, download=False)][0]
 
+        # Moving the file to the music cache
         shutil.move(f"{song_info['id']}.mp3", f"music_cache/{song_info['title']}.mp3")
         song_path = pathlib.Path(__file__).parent.parent / pathlib.Path(f"music_cache/{song_info['title']}.mp3")
 
         if error_code != 0:
             raise ValueError(f'Youtube download error: Error code {error_code}.')
 
+        # Creating the Song object
         video = Song(
             url=url,
             song_path=song_path,
@@ -92,6 +151,14 @@ def download_song(url: str, suggested_by: User) -> Song:
 
 
 def get_song_text(song_dict: dict) -> str:
+    """
+    Formats the text for the bot to send.
+
+    :param song_dict: Dictionary with song info
+
+    :return: Text to send to user
+
+    """
     if 'Result' in song_dict:
         song_dict = song_dict['Result']
 
@@ -100,8 +167,18 @@ def get_song_text(song_dict: dict) -> str:
 
 
 def send_history_to_all_users(users: list[User], history: list[Song], token: str) -> None:
+    """
+    Sends history to all users.
+
+    :param users: List of users to send history to
+    :param history: List of songs that was played during this party
+    :param token: Telegram bot token
+
+    :return: None
+
+    """
+    # Formatting the history string
     if len(history) > 0:
-        # Creating formatted history string
         history_string = "Thanks for the party! Here's the song history:\n\n"
 
         history_string += '\n'.join(
@@ -112,6 +189,7 @@ def send_history_to_all_users(users: list[User], history: list[Song], token: str
 
     logging.info(f'History string: {history_string}')
 
+    # Sending message with history to all users
     for user in users:
         logging.info(f'Sending message to {user}')
 
@@ -129,6 +207,17 @@ def send_history_to_all_users(users: list[User], history: list[Song], token: str
 
 
 def send_audio(path: pathlib.Path | str, chat_id: int, name: str, token: str) -> None:
+    """
+    Sends an audio via Telegram API. Needed, since Telebot does not have this function.
+
+    :param path: Path to audio file
+    :param chat_id: Telegram chat id to send the song to
+    :param name: Name of the song to send
+    :param token: Telegram bot token
+
+    :return: None
+
+    """
     with open(path, 'rb') as audio:
         payload = {
             'chat_id': chat_id,
