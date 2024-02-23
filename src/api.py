@@ -322,7 +322,13 @@ def register(user: UserBaseModel) -> dict:
 
 
 @app.get('/check_queue')
-def check_queue():
+def check_queue() -> dict:
+    """
+    Returns current queue of songs.
+
+    :return: Dictionary with results
+
+    """
     return {
         'Result': player.queue.snapshot(),
     }
