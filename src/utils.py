@@ -104,6 +104,17 @@ def check_for_playlist(url: str) -> bool:
 
 
 def download_song(url: str, suggested_by: User) -> Song:
+    """
+    Function, which downloads the song from the Youtube via yt_dlp. It does this by first downloading the song to cwd
+    and then moving it into the music_cache folder.
+
+    :param url: Youtube url of the song to download
+    :param suggested_by: User, who suggested the song
+
+    :return: Song object
+
+    """
+    # Defining yt_dlp options
     ydl_opts = {
         'format': 'm4a/bestaudio/best',
         'outtmpl': '%(id)s.%(ext)s',
@@ -115,17 +126,20 @@ def download_song(url: str, suggested_by: User) -> Song:
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        # Downloading video
         logging.info(msg=f'Downloading video: {url}, user: {suggested_by}')
 
         error_code = ydl.download([url])
         song_info = [ydl.extract_info(url, download=False)][0]
 
+        # Moving the file to the music cache
         shutil.move(f"{song_info['id']}.mp3", f"music_cache/{song_info['title']}.mp3")
         song_path = pathlib.Path(__file__).parent.parent / pathlib.Path(f"music_cache/{song_info['title']}.mp3")
 
         if error_code != 0:
             raise ValueError(f'Youtube download error: Error code {error_code}.')
 
+        # Creating the Song object
         video = Song(
             url=url,
             song_path=song_path,
