@@ -79,6 +79,14 @@ class SnapshotQueue(queue.Queue):
 
 
 def check_url(url: str) -> bool:
+    """
+    Checks if the url is a valid Youtube/Youtube Music link.
+
+    :param url: Youtube url of the song to download
+
+    :return: True if url is a playlist url
+    
+    """
     youtube_url_regex_pattern = r'^(https?\:\/\/)?((www\.|music\.)?youtube\.com|youtu\.be)\/.+$'
     return re.match(pattern=youtube_url_regex_pattern, string=url) is not None
 
