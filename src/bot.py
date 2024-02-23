@@ -108,6 +108,9 @@ def now_playing(message: telebot.types.Message) -> None:
 
     :return: None
     """
+    logging.info(f'User: {message.from_user.id}, @{message.from_user.username} pressed "Now playing".')
+
+    # Registering new user
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -115,11 +118,13 @@ def now_playing(message: telebot.types.Message) -> None:
     ):
         return
 
+    # Sending a request to the server to get a currently playing song
     try:
         response = requests.get(
             url=f"http://{os.environ.get('SERVER_IP')}/now_playing",
         ).json()
     except requests.exceptions.ConnectionError:
+        logging.info(f'Could not connect to server: {message.from_user.id}, @{message.from_user.username}')
         bot.reply_to(
             message=message,
             text='Cannot connect to server.',
@@ -128,6 +133,7 @@ def now_playing(message: telebot.types.Message) -> None:
 
         return
 
+    # If nothing is playing
     if response['Result']['url'] is None and response['Result']['name'] is None:
         bot.reply_to(
             message=message,
@@ -137,6 +143,7 @@ def now_playing(message: telebot.types.Message) -> None:
 
         return
 
+    # If something is playing, sending the song info and audio
     bot.reply_to(
         message=message,
         text=utils.get_song_text(song_dict=response),
