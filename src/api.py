@@ -254,12 +254,22 @@ def stop_party(
 
 
 @app.post('/skip')
-def skip(user: UserBaseModel):
+def skip(user: UserBaseModel) -> dict:
+    """
+    Skip song endpoint.
+
+    :param user: UserBaseModel of user, who voted for skipping
+
+    :return: Dictionary with results
+
+    """
+    # If not registered
     if user.convert_to_user() not in player.users:
         return {
             'Result': 'User not in system. Use Start button to register!'
         }
 
+    # Adding a voter to player class and returning results
     res = player.add_voter(user.convert_to_user())
     return {
         'Result': f'{res}',
