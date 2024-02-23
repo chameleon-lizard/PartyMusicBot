@@ -395,6 +395,7 @@ def add_song(message: telebot.types.Message) -> None:
 
     :return: None
     """
+    # Registering new user
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -406,6 +407,7 @@ def add_song(message: telebot.types.Message) -> None:
 
     logging.info(f'User @{message.from_user.username} with id {message.from_user.id} added url: {url}')
 
+    # Sending song info to server
     try:
         response = requests.post(
             url=f"http://{os.environ.get('SERVER_IP')}/add_song",
@@ -420,6 +422,7 @@ def add_song(message: telebot.types.Message) -> None:
             ),
         ).json()
     except requests.exceptions.ConnectionError:
+        logging.info(f'Could not connect to server: {message.from_user.id}, @{message.from_user.username}')
         bot.reply_to(
             message=message,
             text='Cannot connect to server.',
@@ -428,7 +431,9 @@ def add_song(message: telebot.types.Message) -> None:
 
         return
 
+    # Replying with added song info
     if isinstance(response['Result'], str):
+        logging.info(f'Something went wrong: {response["Result"]}.')
         bot.reply_to(
             message=message,
             text=response['Result'],
