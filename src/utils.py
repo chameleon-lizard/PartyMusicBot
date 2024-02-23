@@ -151,6 +151,14 @@ def download_song(url: str, suggested_by: User) -> Song:
 
 
 def get_song_text(song_dict: dict) -> str:
+    """
+    Formats the text for the bot to send.
+
+    :param song_dict: Dictionary with song info
+
+    :return: Text to send to user
+
+    """
     if 'Result' in song_dict:
         song_dict = song_dict['Result']
 
