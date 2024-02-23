@@ -202,6 +202,12 @@ class PlaylistSuggester(threading.Thread):
         self._server_ip = server_ip
 
     def run(self):
+        """
+        Runs the PlaylistSuggester thread.
+
+        :return: None
+
+        """
         while True:
             # If the playlist is empty, do nothing
             if not self.song_playlist:
@@ -213,7 +219,7 @@ class PlaylistSuggester(threading.Thread):
                 url=f"http://{self._server_ip}/now_playing",
             ).json()
 
-            # If nothing is playing, adding song via API
+            # If nothing is playing, adding a song via API
             if response['Result']['url'] is None and response['Result']['name'] is None:
                 requests.post(
                     url=f"http://{self._server_ip}/add_song",
@@ -228,6 +234,15 @@ class PlaylistSuggester(threading.Thread):
             time.sleep(PLAYLIST_SLEEP_TIME)
 
     def add_playlist(self, playlist: str, host_name: str) -> None:
+        """
+        Adds a new playlist to the suggester.
+
+        :param playlist: An url for the playlist
+        :param host_name: Name of the host of the party
+
+        :return: None
+
+        """
         # Changing the party host name
         self.host_user = utils.User(
             username=host_name,
@@ -263,5 +278,11 @@ class PlaylistSuggester(threading.Thread):
                         continue
 
     def delete_playlist(self):
+        """
+        Clears the playlist.
+
+        :return: None
+
+        """
         self.host_user = utils.User()
         self.song_playlist = []
