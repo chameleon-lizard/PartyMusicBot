@@ -90,6 +90,14 @@ class AddPlaylistBaseModel(pydantic.BaseModel):
 def check_user_token(
     user_token: HTTPAuthorizationCredentials,
 ):
+    """
+    Checks if the user token is the same as the admin token in the env file.
+
+    :param user_token: User token to check
+
+    :return: True if the user token is not the same as the admin token in the env file
+
+    """
     return user_token != os.environ.get('ADMIN_TOKEN')
 
 
