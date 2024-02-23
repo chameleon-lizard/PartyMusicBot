@@ -149,6 +149,12 @@ class Downloader(threading.Thread):
         self.pool = concurrent.futures.ProcessPoolExecutor
 
     def run(self) -> None:
+        """
+        Runs the downloader thread.
+
+        :return: None
+
+        """
         with self.pool() as executor:
             future_to_song = {}
             while True:
