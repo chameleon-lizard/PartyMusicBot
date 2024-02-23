@@ -338,5 +338,13 @@ templates = Jinja2Templates(directory='templates')
 
 
 @app.get('/', response_class=fastapi.responses.HTMLResponse)
-def index(request: fastapi.Request):
+def index(request: fastapi.Request) -> fastapi.responses.HTMLResponse:
+    """
+    Renders index page with user player.
+
+    :param request: Request object
+
+    :return: HTML page with user player
+
+    """
     return templates.TemplateResponse('index.html', {'request': request, 'ip': f"http://{os.environ.get('VLC_SERVER_IP')}"})
