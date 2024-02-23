@@ -280,6 +280,9 @@ def queue(message: telebot.types.Message) -> None:
 
     :return: None
     """
+    logging.info(f'User: {message.from_user.id}, @{message.from_user.username} pressed "Queue".')
+
+    # Registering new user
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -287,11 +290,13 @@ def queue(message: telebot.types.Message) -> None:
     ):
         return
 
+    # Sending request to the server to get queue
     try:
         response = requests.get(
             url=f"http://{os.environ.get('SERVER_IP')}/check_queue",
         ).json()
     except requests.exceptions.ConnectionError:
+        logging.info(f'Could not connect to server: {message.from_user.id}, @{message.from_user.username}')
         bot.reply_to(
             message=message,
             text='Cannot connect to server.',
@@ -300,6 +305,7 @@ def queue(message: telebot.types.Message) -> None:
 
         return
 
+    # If the length is 0, no songs are in the queue
     if len(response['Result']) == 0:
         bot.reply_to(
             message=message,
@@ -308,6 +314,7 @@ def queue(message: telebot.types.Message) -> None:
 
         return
 
+    # Else, sending song info
     bot.reply_to(
         message=message,
         text='\n'.join(
