@@ -79,6 +79,10 @@ class AddSongBaseModel(pydantic.BaseModel):
 
 
 class AddPlaylistBaseModel(pydantic.BaseModel):
+    """
+    BaseModel for the playlist addition.
+
+    """
     url: str
     host_name: str
 
