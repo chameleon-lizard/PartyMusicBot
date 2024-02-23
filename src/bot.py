@@ -167,6 +167,9 @@ def history(message: telebot.types.Message) -> None:
 
     :return: None
     """
+    logging.info(f'User: {message.from_user.id}, @{message.from_user.username} pressed "History".')
+
+    # Registering new user
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -174,11 +177,13 @@ def history(message: telebot.types.Message) -> None:
     ):
         return
 
+    # Sending request to the server to get history
     try:
         response = requests.get(
             url=f"http://{os.environ.get('SERVER_IP')}/history",
         ).json()
     except requests.exceptions.ConnectionError:
+        logging.info(f'Could not connect to server: {message.from_user.id}, @{message.from_user.username}')
         bot.reply_to(
             message=message,
             text='Cannot connect to server.',
@@ -187,6 +192,7 @@ def history(message: telebot.types.Message) -> None:
 
         return
 
+    # If the length is 0, no songs have been played yet
     if len(response['Result']) == 0:
         bot.reply_to(
             message=message,
@@ -195,8 +201,10 @@ def history(message: telebot.types.Message) -> None:
 
         return
 
+    # Else getting only last 10 songs to limit the amount of spam
     song_history = response['Result'][:10]
 
+    # Sending song info
     bot.reply_to(
         message=message,
         text='\n'.join(
@@ -205,6 +213,7 @@ def history(message: telebot.types.Message) -> None:
         reply_markup=button_markup,
     )
 
+    # Sending individual songs
     for song in song_history:
         utils.send_audio(
             path=song['song_path'],
@@ -223,6 +232,8 @@ def skip(message: telebot.types.Message) -> None:
 
     :return: None
     """
+    logging.info(f'User: {message.from_user.id}, @{message.from_user.username} pressed "Skip".')
+
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -241,6 +252,7 @@ def skip(message: telebot.types.Message) -> None:
             ),
         ).json()
     except requests.exceptions.ConnectionError:
+        logging.info(f'Could not connect to server: {message.from_user.id}, @{message.from_user.username}')
         bot.reply_to(
             message=message,
             text='Cannot connect to server.',
