@@ -211,20 +211,31 @@ def start_party(
 
 @app.get('/stop_party')
 def stop_party(
-    user_token: HTTPAuthorizationCredentials = Depends(security)
-):
+    user_token: HTTPAuthorizationCredentials = Depends(security),
+) -> dict:
+    """
+    End party endpoint.
+
+    :param user_token: User token for basic security
+
+    :return: Dictionary with result status
+
+    """
+    # If not authenticated
     if not check_user_token(user_token):
         raise HTTPException(
             status_code=fastapi_status.HTTP_403_FORBIDDEN,
             detail='Insufficient privileges for this operation',
         )
-    
+
+    # Sending history to everyone
     utils.send_history_to_all_users(
         users=player.users,
         history=player.history,
         token=os.environ.get('BOT_TOKEN'),
     )
 
+    # Restoring the initial settings
     logging.info('Removing all users, clearing queue, playlist and history, setting now_playing to empty song.')
     player.users = []
     player.history = []
@@ -233,6 +244,7 @@ def stop_party(
     with player.queue.mutex:
         player.queue.queue.clear()
 
+    # Stopping the playback and returning the results
     logging.info('Stopping playback')
     player.skip()
 
