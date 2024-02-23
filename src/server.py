@@ -1,3 +1,8 @@
+"""
+Server module, which contains Player, Downloader and PlaylistSuggester classes.
+
+"""
+
 import concurrent.futures
 import json
 import logging
