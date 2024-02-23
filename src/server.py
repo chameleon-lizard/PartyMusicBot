@@ -26,7 +26,7 @@ PLAYLIST_SLEEP_TIME = 30
 
 class Player(threading.Thread):
     """
-    Class for the backend player that manages history, queue and now playing.
+    Class for the backend player that manages history, queue and song skipping.
 
     """
 
@@ -61,33 +61,51 @@ class Player(threading.Thread):
         self.media_list.add_media(silence)
 
     def run(self) -> None:
+        """
+        Starts the player thread.
+
+        :return: None
+
+        """
         while True:
+            # Dirty hack to wait for songs
             if self.queue.empty():
                 self.player.play()
                 time.sleep(1)
                 continue
 
+            # Getting the song to play
             song = self.queue.get_nowait()
 
             logging.info(f'Playing song: {song.name}')
 
+            # Adding song to history and to now_playing
             self.now_playing = song
             self.history.append(song)
 
+            # Adding the song to VLC media list and starting the playback
             mrl = f'file://{song.song_path.absolute()}'
 
             m = self.vlc_instance.media_new(mrl, self.sout)
             self.media_list.add_media(m)
             self.player.play()
 
+            # Dirty hack for waiting until the end of the song
             while self.player.is_playing():
                 time.sleep(1)
 
+            # Removing the song from VLC media list, setting default song to now_playing, clearing the skip voters list
             self.media_list.remove_index(1)
             self.now_playing = utils.Song()
             self._voters_to_skip = list()
 
     def skip(self) -> None:
+        """
+        Skips the current playing song
+
+        :return: None
+
+        """
         self.media_list.remove_index(1)
 
         # Some VLC black magic
@@ -97,9 +115,18 @@ class Player(threading.Thread):
         self._voters_to_skip = list()
 
     def add_voter(self, user: utils.User) -> str:
+        """
+        Adds voter for skipping.
+
+        :param user: User that voted for skipping current song
+
+        :return: None
+
+        """
         if user not in self._voters_to_skip:
             self._voters_to_skip.append(user)
 
+        # Only skip if 1/3 of the people voted to skip the song
         if len(self._voters_to_skip) >= math.floor(len(self.users) / 3):
             self.skip()
             return 'Skipping song...'
