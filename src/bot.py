@@ -1,3 +1,10 @@
+"""
+Reference implementation of the telegram bot for PartyMusicBot. Uses `.env` file located at `$project_root/venv/.env`.
+
+To run: `python bot.py`
+
+"""
+
 import json
 import logging
 import os
@@ -65,6 +72,16 @@ def register_new_user(
 
 @bot.message_handler(func=lambda message: message.text in ('/start', '/help', 'Help'))
 def welcome(message: telebot.types.Message) -> None:
+    """
+    Handle the user's first message to the bot, sending a greeting and instructions on how to use the bot. Registers new users.
+
+    :param message: The message object received from the user.
+
+    :return: None
+    """
+    logging.info(f'User: {message.from_user.id}, @{message.from_user.username} pressed "Help" or /start.')
+
+    # Registering new user
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -72,6 +89,7 @@ def welcome(message: telebot.types.Message) -> None:
     ):
         return
 
+    # Replying with welcome message
     bot.reply_to(
         message=message,
         text="Hi there! I am a bot that can organize music queue during parties. Send a link to youtube video into "
@@ -90,6 +108,16 @@ def welcome(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text in ('Now playing',))
 def now_playing(message: telebot.types.Message) -> None:
+    """
+    Returns the currently playing song. Registers new users.
+
+    :param message: The message object received from the user.
+
+    :return: None
+    """
+    logging.info(f'User: {message.from_user.id}, @{message.from_user.username} pressed "Now playing".')
+
+    # Registering new user
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -97,11 +125,13 @@ def now_playing(message: telebot.types.Message) -> None:
     ):
         return
 
+    # Sending a request to the server to get a currently playing song
     try:
         response = requests.get(
             url=f"http://{os.environ.get('SERVER_IP')}/now_playing",
         ).json()
     except requests.exceptions.ConnectionError:
+        logging.info(f'Could not connect to server: {message.from_user.id}, @{message.from_user.username}')
         bot.reply_to(
             message=message,
             text='Cannot connect to server.',
@@ -110,6 +140,7 @@ def now_playing(message: telebot.types.Message) -> None:
 
         return
 
+    # If nothing is playing
     if response['Result']['url'] is None and response['Result']['name'] is None:
         bot.reply_to(
             message=message,
@@ -119,6 +150,7 @@ def now_playing(message: telebot.types.Message) -> None:
 
         return
 
+    # If something is playing, sending the song info and audio
     bot.reply_to(
         message=message,
         text=utils.get_song_text(song_dict=response),
@@ -135,6 +167,16 @@ def now_playing(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text in ('History',))
 def history(message: telebot.types.Message) -> None:
+    """
+    Returns the last 10 songs or less to user. Registers new users.
+
+    :param message: The message object received from the user.
+
+    :return: None
+    """
+    logging.info(f'User: {message.from_user.id}, @{message.from_user.username} pressed "History".')
+
+    # Registering new user
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -142,11 +184,13 @@ def history(message: telebot.types.Message) -> None:
     ):
         return
 
+    # Sending request to the server to get history
     try:
         response = requests.get(
             url=f"http://{os.environ.get('SERVER_IP')}/history",
         ).json()
     except requests.exceptions.ConnectionError:
+        logging.info(f'Could not connect to server: {message.from_user.id}, @{message.from_user.username}')
         bot.reply_to(
             message=message,
             text='Cannot connect to server.',
@@ -155,6 +199,7 @@ def history(message: telebot.types.Message) -> None:
 
         return
 
+    # If the length is 0, no songs have been played yet
     if len(response['Result']) == 0:
         bot.reply_to(
             message=message,
@@ -163,8 +208,10 @@ def history(message: telebot.types.Message) -> None:
 
         return
 
+    # Else getting only last 10 songs to limit the amount of spam
     song_history = response['Result'][:10]
 
+    # Sending song info
     bot.reply_to(
         message=message,
         text='\n'.join(
@@ -173,6 +220,7 @@ def history(message: telebot.types.Message) -> None:
         reply_markup=button_markup,
     )
 
+    # Sending individual songs
     for song in song_history:
         utils.send_audio(
             path=song['song_path'],
@@ -184,6 +232,16 @@ def history(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text in ('Skip',))
 def skip(message: telebot.types.Message) -> None:
+    """
+    Starts the vote for skipping the song. Registers new users.
+
+    :param message: The message object received from the user.
+
+    :return: None
+    """
+    logging.info(f'User: {message.from_user.id}, @{message.from_user.username} pressed "Skip".')
+
+    # Registering new user
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -191,6 +249,7 @@ def skip(message: telebot.types.Message) -> None:
     ):
         return
 
+    # Sending request to the server to skip
     try:
         response = requests.post(
             url=f"http://{os.environ.get('SERVER_IP')}/skip",
@@ -202,6 +261,7 @@ def skip(message: telebot.types.Message) -> None:
             ),
         ).json()
     except requests.exceptions.ConnectionError:
+        logging.info(f'Could not connect to server: {message.from_user.id}, @{message.from_user.username}')
         bot.reply_to(
             message=message,
             text='Cannot connect to server.',
@@ -210,6 +270,7 @@ def skip(message: telebot.types.Message) -> None:
 
         return
 
+    # Replying with result
     bot.reply_to(
         message=message,
         text=response['Result'],
@@ -219,6 +280,16 @@ def skip(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text in ('Queue',))
 def queue(message: telebot.types.Message) -> None:
+    """
+    Shows the queue of songs. Registers new users.
+
+    :param message: The message object received from the user.
+
+    :return: None
+    """
+    logging.info(f'User: {message.from_user.id}, @{message.from_user.username} pressed "Queue".')
+
+    # Registering new user
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -226,11 +297,13 @@ def queue(message: telebot.types.Message) -> None:
     ):
         return
 
+    # Sending request to the server to get queue
     try:
         response = requests.get(
             url=f"http://{os.environ.get('SERVER_IP')}/check_queue",
         ).json()
     except requests.exceptions.ConnectionError:
+        logging.info(f'Could not connect to server: {message.from_user.id}, @{message.from_user.username}')
         bot.reply_to(
             message=message,
             text='Cannot connect to server.',
@@ -239,6 +312,7 @@ def queue(message: telebot.types.Message) -> None:
 
         return
 
+    # If the length is 0, no songs are in the queue
     if len(response['Result']) == 0:
         bot.reply_to(
             message=message,
@@ -247,6 +321,7 @@ def queue(message: telebot.types.Message) -> None:
 
         return
 
+    # Else, sending song info
     bot.reply_to(
         message=message,
         text='\n'.join(
@@ -258,6 +333,14 @@ def queue(message: telebot.types.Message) -> None:
 
 @bot.message_handler(func=lambda message: message.text.startswith('/add_song_anon'))
 def add_song_anon(message: telebot.types.Message) -> None:
+    """
+    Adds new song anonimously. Registers new users.
+
+    :param message: The message object received from the user.
+
+    :return: None
+    """
+    # Registering new user
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -265,10 +348,12 @@ def add_song_anon(message: telebot.types.Message) -> None:
     ):
         return
 
+    # Dirty hack to get only the url without "/add_song_anon "
     url = message.text[15:]
 
     logging.info(f'User @{message.from_user.username} with id {message.from_user.id} anonimously added url: {url}')
 
+    # Sending song info to server
     try:
         response = requests.post(
             url=f"http://{os.environ.get('SERVER_IP')}/add_song",
@@ -283,6 +368,7 @@ def add_song_anon(message: telebot.types.Message) -> None:
             ),
         ).json()
     except requests.exceptions.ConnectionError:
+        logging.info(f'Could not connect to server: {message.from_user.id}, @{message.from_user.username}')
         bot.reply_to(
             message=message,
             text='Cannot connect to server.',
@@ -291,7 +377,9 @@ def add_song_anon(message: telebot.types.Message) -> None:
 
         return
 
+    # Replying with added song info
     if isinstance(response['Result'], str):
+        logging.info(f'Something went wrong: {response["Result"]}.')
         bot.reply_to(
             message=message,
             text=response['Result'],
@@ -305,9 +393,16 @@ def add_song_anon(message: telebot.types.Message) -> None:
         )
 
 
-
 @bot.message_handler(content_types=['text'])
 def add_song(message: telebot.types.Message) -> None:
+    """
+    Adds new song. Registers new users.
+
+    :param message: The message object received from the user.
+
+    :return: None
+    """
+    # Registering new user
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -319,6 +414,7 @@ def add_song(message: telebot.types.Message) -> None:
 
     logging.info(f'User @{message.from_user.username} with id {message.from_user.id} added url: {url}')
 
+    # Sending song info to server
     try:
         response = requests.post(
             url=f"http://{os.environ.get('SERVER_IP')}/add_song",
@@ -333,6 +429,7 @@ def add_song(message: telebot.types.Message) -> None:
             ),
         ).json()
     except requests.exceptions.ConnectionError:
+        logging.info(f'Could not connect to server: {message.from_user.id}, @{message.from_user.username}')
         bot.reply_to(
             message=message,
             text='Cannot connect to server.',
@@ -341,7 +438,9 @@ def add_song(message: telebot.types.Message) -> None:
 
         return
 
+    # Replying with added song info
     if isinstance(response['Result'], str):
+        logging.info(f'Something went wrong: {response["Result"]}.')
         bot.reply_to(
             message=message,
             text=response['Result'],
@@ -356,4 +455,9 @@ def add_song(message: telebot.types.Message) -> None:
 
 
 def start_bot() -> None:
+    """
+    Starts the bot.
+
+    :return: None
+    """
     bot.infinity_polling()
