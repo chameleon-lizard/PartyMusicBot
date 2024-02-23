@@ -76,6 +76,10 @@ def add_song(
             'Result': f'Error: URL is a playilst, wont add: {added_song.url}',
         }
 
+    if sum(map(lambda _: _.suggested_by.username == added_song.user.username, player.queue.snapshot())) >= 3:
+        return {
+            'Result': 'Too many added songs in queue. Please try again later, when your other songs have been played!'
+        }
 
     # If the song is already in history, using the same song
     try:
