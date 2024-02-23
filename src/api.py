@@ -277,7 +277,13 @@ def skip(user: UserBaseModel) -> dict:
 
 
 @app.get('/now_playing')
-def now_playing():
+def now_playing() -> dict:
+    """
+    Returns currently playing song info.
+
+    :return: Dictionary with results
+
+    """
     return {
         'Result': player.now_playing.to_dict(),
     }
