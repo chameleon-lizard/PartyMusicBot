@@ -303,7 +303,15 @@ def get_history() -> dict:
 
 
 @app.post('/register')
-def register(user: UserBaseModel):
+def register(user: UserBaseModel) -> dict:
+    """
+    Register new user.
+
+    :param user: BaseModel of user to register
+
+    :return: Dictionary with results
+
+    """
     if user.convert_to_user() not in player.users:
         player.users.append(user.convert_to_user())
         logging.info(f'Registered new user: {user.convert_to_user().to_dict()}')
