@@ -355,4 +355,6 @@ def index(request: fastapi.Request) -> fastapi.responses.HTMLResponse:
     :return: HTML page with user player
 
     """
-    return templates.TemplateResponse('index.html', {'request': request, 'ip': f"http://{os.environ.get('VLC_SERVER_IP')}"})
+    return templates.TemplateResponse(
+        'index.html', {'request': request, 'ip': f"http://{os.environ.get('VLC_SERVER_IP')}"}
+    )
