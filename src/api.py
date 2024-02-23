@@ -175,22 +175,38 @@ def add_song(
 def start_party(
     playlist: AddPlaylistBaseModel,
     user_token: HTTPAuthorizationCredentials = Depends(security),
-):
+) -> dict:
+    """
+    Start party endpoint.
+
+    :param playlist: Party playlist
+    :param user_token: User token for basic security
+
+    :return: Dictionary with result status
+
+    """
+    # If not authenticated
     if not check_user_token(user_token):
         raise HTTPException(
             status_code=fastapi_status.HTTP_403_FORBIDDEN,
             detail='Insufficient privileges for this operation',
         )
 
+    # If the link is incorrect
     if not utils.check_url(playlist.url):
         return {
             'Result': 'Invalid url'
         }
 
+    # Adding the playlist to the suggester and returning success
     suggester.add_playlist(
         playlist=playlist.url,
         host_name=playlist.host_name,
     )
+
+    return {
+        'Result': 'Success'
+    }
 
 
 @app.get('/stop_party')
