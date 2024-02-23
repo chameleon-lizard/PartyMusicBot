@@ -198,6 +198,7 @@ def get_history():
 def register(user: UserBaseModel):
     if user.convert_to_user() not in player.users:
         player.users.append(user.convert_to_user())
+        logging.info(f'Registered new user: {user.convert_to_user().to_dict()}')
 
     return {
         'Result': 'Success!',
