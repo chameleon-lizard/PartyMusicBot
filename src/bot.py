@@ -234,6 +234,7 @@ def skip(message: telebot.types.Message) -> None:
     """
     logging.info(f'User: {message.from_user.id}, @{message.from_user.username} pressed "Skip".')
 
+    # Registering new user
     if not register_new_user(
         message=message,
         user_id=message.from_user.id,
@@ -241,6 +242,7 @@ def skip(message: telebot.types.Message) -> None:
     ):
         return
 
+    # Sending request to the server to skip
     try:
         response = requests.post(
             url=f"http://{os.environ.get('SERVER_IP')}/skip",
@@ -261,6 +263,7 @@ def skip(message: telebot.types.Message) -> None:
 
         return
 
+    # Replying with result
     bot.reply_to(
         message=message,
         text=response['Result'],
