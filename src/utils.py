@@ -39,12 +39,20 @@ class User:
 
 @dataclasses.dataclass
 class Song:
+    """
+    Dataclass for song info.
+
+    """
     url: str | None = None
     song_path: pathlib.Path | None = None
     name: str | None = None
     suggested_by: User | None = None
 
     def to_dict(self) -> dict:
+        """
+        Method that converts class to a dictionary with user info.
+
+        """
         return {
             'url': self.url,
             'song_path': str(self.song_path),
