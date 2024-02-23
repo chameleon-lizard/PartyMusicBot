@@ -1,3 +1,8 @@
+"""
+Utils module with functions, used in bot, server and api.
+
+"""
+
 import dataclasses
 import json
 import logging
