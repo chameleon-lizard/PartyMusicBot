@@ -13,7 +13,7 @@ import telebot
 
 from src import utils
 
-logging.basicConfig(format='%(levelname)s: %(message)s"', level=logging.INFO)
+logging.basicConfig(format='[%(threadName)s] %(levelname)s: %(message)s"', level=logging.INFO)
 
 dotenv.load_dotenv('../venv/.env')
 

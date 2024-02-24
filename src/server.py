@@ -17,7 +17,7 @@ import vlc
 
 from src import utils
 
-logging.basicConfig(format='%(levelname)s: %(message)s"', level=logging.INFO)
+logging.basicConfig(format='[%(threadName)s] %(levelname)s: %(message)s"', level=logging.INFO)
 
 
 PLAYLIST_SLEEP_TIME = 30
@@ -31,6 +31,8 @@ class Player(threading.Thread):
 
     def __init__(self):
         super(Player, self).__init__()
+
+        self.name = 'Player'
 
         # Creating song queue, users set and history
         self.queue = utils.SnapshotQueue()
@@ -145,6 +147,9 @@ class Downloader(threading.Thread):
 
     def __init__(self) -> None:
         super(Downloader, self).__init__()
+
+        self.name = 'Downloader'
+
         self.input_queue = queue.Queue()
         self.output_queue = queue.Queue()
         self.pool = concurrent.futures.ProcessPoolExecutor
@@ -201,6 +206,8 @@ class PlaylistSuggester(threading.Thread):
 
     def __init__(self, server_ip: str):
         super(PlaylistSuggester, self).__init__()
+
+        self.name = 'PlaylistSuggester'
 
         self.host_user = utils.User()
         self.song_playlist = []

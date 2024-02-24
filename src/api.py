@@ -30,6 +30,8 @@ from src import server
 from src import utils
 
 dotenv.load_dotenv('venv/.env')
+logging.basicConfig(format='[%(threadName)s] %(levelname)s: %(message)s"', level=logging.INFO)
+
 
 app = fastapi.FastAPI()
 

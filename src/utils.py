@@ -14,7 +14,7 @@ import shutil
 import requests
 import yt_dlp
 
-logging.basicConfig(format='%(levelname)s: %(message)s"', level=logging.INFO)
+logging.basicConfig(format='[%(threadName)s] %(levelname)s: %(message)s"', level=logging.INFO)
 
 
 @dataclasses.dataclass
