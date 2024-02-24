@@ -45,7 +45,7 @@ downloader = server.Downloader()
 downloader.start()
 
 suggester = server.PlaylistSuggester(
-    server_ip=os.environ.get('SERVER_IP'),
+    server_ip=f"{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}",
 )
 suggester.start()
 
@@ -359,5 +359,5 @@ def index(request: fastapi.Request) -> fastapi.responses.HTMLResponse:
 
     """
     return templates.TemplateResponse(
-        'index.html', {'request': request, 'ip': f"http://{os.environ.get('VLC_SERVER_IP')}"}
+        'index.html', {'request': request, 'ip': f"http://{os.environ.get('VLC_SERVER_IP')}:{os.environ.get('VLC_PORT')}"}
     )
