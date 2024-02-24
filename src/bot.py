@@ -15,7 +15,7 @@ from src import utils
 
 logging.basicConfig(format='[%(threadName)s] %(levelname)s: %(message)s"', level=logging.INFO)
 
-dotenv.load_dotenv('../venv/.env')
+dotenv.load_dotenv('env')
 
 bot = telebot.TeleBot(
     token=f"{os.environ.get('BOT_TOKEN')}",

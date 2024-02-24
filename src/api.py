@@ -29,9 +29,10 @@ from fastapi.templating import Jinja2Templates
 from src import server
 from src import utils
 
-dotenv.load_dotenv('venv/.env')
+
 logging.basicConfig(format='[%(threadName)s] %(levelname)s: %(message)s"', level=logging.INFO)
 
+dotenv.load_dotenv('env')
 
 app = fastapi.FastAPI()
 
