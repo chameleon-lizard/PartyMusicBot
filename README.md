@@ -10,7 +10,7 @@ choices of music. Organising queue is a real PITA -- so I've made this bot to he
 After finishing the bot, I've hosted it on my local server so it effectively became an internet radio station with
 community-based song suggestions. Check it out:
 
-- Web frontend: [chameleon-lizard.ru/radio](chameleon-lizard.ru:81/radio)
+- Web frontend: [chameleon-lizard.ru/radio](http://chameleon-lizard.ru:81/radio)
 - Telegram bot: [@arina_party_music_bot](https://t.me/arina_party_music_bot)
 
 # Features
