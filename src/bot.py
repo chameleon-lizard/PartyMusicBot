@@ -13,9 +13,9 @@ import telebot
 
 from src import utils
 
-logging.basicConfig(format='%(levelname)s: %(message)s"', level=logging.INFO)
+logging.basicConfig(format='[%(threadName)s] %(levelname)s: %(message)s"', level=logging.INFO)
 
-dotenv.load_dotenv('../venv/.env')
+dotenv.load_dotenv('env')
 
 bot = telebot.TeleBot(
     token=f"{os.environ.get('BOT_TOKEN')}",
@@ -47,7 +47,7 @@ def register_new_user(
     """
     try:
         requests.post(
-            url=f"http://{os.environ.get('SERVER_IP')}/register",
+            url=f"http://{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}/register",
             data=json.dumps(
                 {
                     'user_id': f'{user_id}',
@@ -126,7 +126,7 @@ def now_playing(message: telebot.types.Message) -> None:
     # Sending a request to the server to get a currently playing song
     try:
         response = requests.get(
-            url=f"http://{os.environ.get('SERVER_IP')}/now_playing",
+            url=f"http://{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}/now_playing",
         ).json()
     except requests.exceptions.ConnectionError:
         logging.info(f'Could not connect to server: {message.from_user.id}, @{message.from_user.username}')
@@ -185,7 +185,7 @@ def history(message: telebot.types.Message) -> None:
     # Sending request to the server to get history
     try:
         response = requests.get(
-            url=f"http://{os.environ.get('SERVER_IP')}/history",
+            url=f"http://{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}/history",
         ).json()
     except requests.exceptions.ConnectionError:
         logging.info(f'Could not connect to server: {message.from_user.id}, @{message.from_user.username}')
@@ -250,7 +250,7 @@ def skip(message: telebot.types.Message) -> None:
     # Sending request to the server to skip
     try:
         response = requests.post(
-            url=f"http://{os.environ.get('SERVER_IP')}/skip",
+            url=f"http://{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}/skip",
             data=json.dumps(
                 {
                     'user_id': f'{message.from_user.id}',
@@ -298,7 +298,7 @@ def queue(message: telebot.types.Message) -> None:
     # Sending request to the server to get queue
     try:
         response = requests.get(
-            url=f"http://{os.environ.get('SERVER_IP')}/check_queue",
+            url=f"http://{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}/check_queue",
         ).json()
     except requests.exceptions.ConnectionError:
         logging.info(f'Could not connect to server: {message.from_user.id}, @{message.from_user.username}')
@@ -354,7 +354,7 @@ def add_song_anon(message: telebot.types.Message) -> None:
     # Sending song info to server
     try:
         response = requests.post(
-            url=f"http://{os.environ.get('SERVER_IP')}/add_song",
+            url=f"http://{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}/add_song",
             data=json.dumps(
                 {
                     'url': url,
@@ -415,7 +415,7 @@ def add_song(message: telebot.types.Message) -> None:
     # Sending song info to server
     try:
         response = requests.post(
-            url=f"http://{os.environ.get('SERVER_IP')}/add_song",
+            url=f"http://{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}/add_song",
             data=json.dumps(
                 {
                     'url': url,

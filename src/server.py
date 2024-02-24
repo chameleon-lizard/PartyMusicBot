@@ -7,17 +7,21 @@ import concurrent.futures
 import json
 import logging
 import math
+import os
 import queue
 import random
 import threading
 import time
 
+import dotenv
 import requests
 import vlc
 
 from src import utils
 
-logging.basicConfig(format='%(levelname)s: %(message)s"', level=logging.INFO)
+logging.basicConfig(format='[%(threadName)s] %(levelname)s: %(message)s"', level=logging.INFO)
+
+dotenv.load_dotenv('env')
 
 
 PLAYLIST_SLEEP_TIME = 30
@@ -31,6 +35,8 @@ class Player(threading.Thread):
 
     def __init__(self):
         super(Player, self).__init__()
+
+        self.name = 'Player'
 
         # Creating song queue, users set and history
         self.queue = utils.SnapshotQueue()
@@ -49,7 +55,7 @@ class Player(threading.Thread):
         # Creating parameter string for VLC
         self.sout = \
             ('sout=#transcode{vcodec=none,acodec=mp3,ab=128,channels=2,samplerate=44100,scodec=none}:http{mux=mp3,'
-             'dst=:45555/}')
+             'dst=:' + os.environ.get('VLC_PORT') + '/}')
 
         # Creating and adding the silence between the songs so VLC will not stop streaming
         silence = self.vlc_instance.media_new(
@@ -145,6 +151,9 @@ class Downloader(threading.Thread):
 
     def __init__(self) -> None:
         super(Downloader, self).__init__()
+
+        self.name = 'Downloader'
+
         self.input_queue = queue.Queue()
         self.output_queue = queue.Queue()
         self.pool = concurrent.futures.ProcessPoolExecutor
@@ -201,6 +210,8 @@ class PlaylistSuggester(threading.Thread):
 
     def __init__(self, server_ip: str):
         super(PlaylistSuggester, self).__init__()
+
+        self.name = 'PlaylistSuggester'
 
         self.host_user = utils.User()
         self.song_playlist = []
