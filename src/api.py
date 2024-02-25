@@ -7,11 +7,12 @@ Api for the PartyMusicBot. Supports the following endpoints
 for it.
 3. /stop_party: Stop the party by emptying the queue, clearing the history, and ending playback. The user needs to pass
 their username and user ID (optional).
-4. /skip: Skip a song. The user should provide their username and user ID (optional).
-5. /now_playing: Get information about the currently playing song.
-6. /history: Get a list of all songs played so far.
-7. /register: Register a new user with the system. The user should provide their username and user ID (optional).
-8. /check_queue: Get a snapshot of the current queue, including all songs that have been added but not yet played.
+4. /ban_user: Ban the user
+5. /skip: Skip a song. The user should provide their username and user ID (optional).
+6. /now_playing: Get information about the currently playing song.
+7. /history: Get a list of all songs played so far.
+8. /register: Register a new user with the system. The user should provide their username and user ID (optional).
+9. /check_queue: Get a snapshot of the current queue, including all songs that have been added but not yet played.
 
 """
 
@@ -259,6 +260,46 @@ def stop_party(
 
     return {
         'Result': 'Party ended!'
+    }
+
+
+@app.post('/ban_user')
+def ban_user(
+    user_info: UserBaseModel,
+    user_token: HTTPAuthorizationCredentials = Depends(security),
+) -> dict:
+    """
+    Ban user endpoint.
+
+    :param user_info: User info
+    :param user_token: User token for basic security
+
+    :return: Dictionary with result status
+
+    """
+    logging.info(f'Attempting to ban a user: {user_info.user_id}, @{user_info.username}, {user_token.model_dump_json()}')
+
+    user_info = user_info.convert_to_user()
+    # If not authenticated
+    if not check_user_token(user_token):
+        raise HTTPException(
+            status_code=fastapi_status.HTTP_403_FORBIDDEN,
+            detail='Insufficient privileges for this operation',
+        )
+
+    # Registering a user in case they were not registered yet. Motivation: can create a list of banned users and ban
+    # them right after the party start
+    utils.send_register_request(
+        user_id=user_info.user_id,
+        username=user_info.username,
+    )
+
+    for usr in player.users:
+        if usr.username == user_info.username and usr.user_id == user_info.user_id:
+            usr.is_banned = True
+
+    return {
+        'Result': 'Success'
     }
 
 
