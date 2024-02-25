@@ -133,8 +133,9 @@ def download_song(url: str, suggested_by: User) -> Song:
         song_info = [ydl.extract_info(url, download=False)][0]
 
         # Moving the file to the music cache
-        shutil.move(f"{song_info['id']}.mp3", f"music_cache/{song_info['title']}.mp3")
-        song_path = pathlib.Path(__file__).parent.parent / pathlib.Path(f"music_cache/{song_info['title']}.mp3")
+        new_title = ''.join('_' if not _.isalnum() else _ for _ in song_info['title'])
+        shutil.move(f"{song_info['id']}.mp3", f"music_cache/{new_title}.mp3")
+        song_path = pathlib.Path(__file__).parent.parent / pathlib.Path(f"music_cache/{new_title}.mp3")
 
         if error_code != 0:
             raise ValueError(f'Youtube download error: Error code {error_code}.')
