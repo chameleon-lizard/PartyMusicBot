@@ -92,6 +92,25 @@ class AddPlaylistBaseModel(pydantic.BaseModel):
     host_name: str
 
 
+def check_user_for_ban(
+    user: UserBaseModel,
+) -> bool:
+    """
+    Checks if the user is banned.
+
+    :param user: The BaseModel for the user to check
+
+    :return: is_banned field of User with the same credentials
+
+    """
+    try:
+        return next(
+            (_.is_banned for _ in player.users if _.user_id == user.user_id and _.username == '@' + user.username)
+        )
+    except StopIteration:
+        return False
+
+
 def check_user_token(
     user_token: HTTPAuthorizationCredentials,
 ):
@@ -118,6 +137,13 @@ def add_song_anon(
     :return: Dictionary with added song info or error message
 
     """
+    if check_user_for_ban(added_song.user):
+        logging.error(msg=f'Banned user: {added_song.user} tried to add song.')
+
+        return {
+            'Result': f'User banned, song not added.'
+        }
+    
     try:
         return requests.post(
             url=f"http://{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}/add_song",
@@ -149,6 +175,13 @@ def add_song(
     :return: Dictionary with added song info or error message
 
     """
+    if check_user_for_ban(added_song.user):
+        logging.error(msg=f'Banned user: {added_song.user} tried to add song.')
+
+        return {
+            'Result': f'User banned, song not added.'
+        }
+
     # Checking if the url is not for Youtube/YTM
     if not utils.check_url(url=added_song.url):
         logging.error(msg=f'Incorrect URL: {added_song.url}')
@@ -351,6 +384,13 @@ def skip(user: UserBaseModel) -> dict:
         logging.info(f'User {user.convert_to_user()} voted for skipping the song, but was unregistered.')
         return {
             'Result': 'User not in system. Use Start button to register!'
+        }
+
+    if check_user_for_ban(user):
+        logging.error(msg=f'Banned user: {user} tried to skip song.')
+
+        return {
+            'Result': f'User banned, song not added.'
         }
 
     # Adding a voter to player class and returning results
