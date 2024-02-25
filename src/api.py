@@ -15,11 +15,12 @@ their username and user ID (optional).
 9. /check_queue: Get a snapshot of the current queue, including all songs that have been added but not yet played.
 
 """
-
+import json
 import logging
 import os
 
 import dotenv
+import requests
 import fastapi
 import pydantic
 from fastapi import Depends, HTTPException
@@ -103,6 +104,37 @@ def check_user_token(
 
     """
     return user_token != os.environ.get('ADMIN_TOKEN')
+
+
+@app.post('/add_song_anon')
+def add_song_anon(
+    added_song: AddSongBaseModel,
+) -> dict:
+    """
+    Anonymously adds a song to the player queue.
+
+    :param added_song: The song to add
+
+    :return: Dictionary with added song info or error message
+
+    """
+    try:
+        return requests.post(
+            url=f"http://{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}/add_song",
+            data=json.dumps(
+                {
+                    'url': added_song.url,
+                    'user': {
+                        'user_id': f'Anon',
+                        'username': f'Anonymous user',
+                    },
+                }
+            ),
+        ).json()
+    except requests.exceptions.ConnectionError:
+        return {
+            'Result': f'Could not connect to server',
+        }
 
 
 @app.post('/add_song')
