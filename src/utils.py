@@ -26,6 +26,7 @@ class User:
     """
     user_id: str | None = None
     username: str | None = None
+    is_banned: bool = False
 
     def to_dict(self) -> dict[str, str | None]:
         """

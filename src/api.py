@@ -69,6 +69,7 @@ class UserBaseModel(pydantic.BaseModel):
         return utils.User(
             user_id=self.user_id,
             username=self.username,
+            is_banned=True,
         )
 
 
