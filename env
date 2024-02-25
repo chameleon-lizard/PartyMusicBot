@@ -4,3 +4,12 @@ API_PORT=12345
 VLC_SERVER_IP=127.0.0.1
 VLC_PORT=12346
 ADMIN_TOKEN=1234
+playlists=(
+  "https://youtube.com/playlist?list=PLgfp3R-fbQx2hUNEcAjSmDPotNEWrU1VD&si=iS_2JNkdYKNuBaDy"
+  "https://youtube.com/playlist?list=PLgfp3R-fbQx2HKOSZzny2vfW2MoUKE63w&si=2INNeqLCv78KZ-T-"
+  "https://youtube.com/playlist?list=PLgfp3R-fbQx3AKNJuFSrQ6jeybJDgGl4Z&si=1IRISQePhbvdMJHs"
+  "https://youtube.com/playlist?list=PLgfp3R-fbQx23A87jiWoOamt7vq4VsI-A&si=zKgO79bkzQf0RPlJ"
+  "https://youtube.com/playlist?list=PLgfp3R-fbQx2DI0MYDQNdP200-ZjzpiTM&si=msHQsd3CY2HicoNR"
+  "https://youtube.com/playlist?list=PLgfp3R-fbQx2QdZk627ychG28MAkXExCB&si=dbCix8dcwlMGoLAy"
+  "https://youtube.com/playlist?list=PLgfp3R-fbQx3YeL1G0rQ3QC4qpIFNQC0B&si=ERLwUIQaCCqVYCaP"
+)
