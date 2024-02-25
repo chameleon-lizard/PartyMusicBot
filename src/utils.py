@@ -6,6 +6,7 @@ Utils module with functions, used in bot, server and api.
 import dataclasses
 import json
 import logging
+import os
 import pathlib
 import queue
 import re
@@ -233,3 +234,25 @@ def send_audio(path: pathlib.Path | str, chat_id: int, name: str, token: str) ->
             data=payload,
             files=files
         ).json()
+
+
+def send_register_request(user_id: int | str, username: str) -> bool:
+    """
+    Sends a register request to backend.
+
+    :param user_id: User ID to register
+    :param username: Username to register
+
+    :return: True if success
+    """
+    requests.post(
+        url=f"http://{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}/register",
+        data=json.dumps(
+            {
+                'user_id': f'{user_id}',
+                'username': f'@{username}',
+            }
+        ),
+    )
+
+    return True
