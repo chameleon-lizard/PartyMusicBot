@@ -44,3 +44,7 @@ The application uses two ports:
 # Env file
 
 Sample env file is provided in the repository. Change it for your bot and server location.
+
+Also, I have defined 7 links for playlists for 7 days week. Cronjob inside the container will change the playlist at 
+00:05, so the music for each day will be different. If you want, just copy and paste your playlist 7 times -- and
+it will play the same music.
