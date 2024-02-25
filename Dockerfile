@@ -9,7 +9,8 @@ COPY env /app/env
 COPY requirements.txt /app/requirements.txt
 RUN mkdir /app/music_cache
 RUN pip install -r requirements.txt
-RUN apt-get update && apt-get install vlc ffmpeg -y
+RUN apt-get update && apt-get install vlc ffmpeg cron curl -y
+RUN crontab -l | { cat; echo "15 00 * * * bash /app/src/start_new_party.sh"; } | crontab -
 
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
