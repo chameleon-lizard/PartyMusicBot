@@ -7,10 +7,11 @@ COPY templates /app/templates
 COPY main.py /app/main.py
 COPY env /app/env
 COPY requirements.txt /app/requirements.txt
+COPY cron_pmb /etc/cron.d/cron_pmb
 RUN mkdir /app/music_cache
 RUN pip install -r requirements.txt
 RUN apt-get update && apt-get install vlc ffmpeg cron curl -y
-RUN crontab -l | { cat; echo "15 00 * * * bash /app/src/start_new_party.sh"; } | crontab -
+RUN crontab /etc/cron.d/cron_pmb
 
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh

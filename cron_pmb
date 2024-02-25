@@ -1,0 +1,1 @@
+30 00 * * * bash /app/src/start_new_party.sh
