@@ -30,16 +30,16 @@ community-based song suggestions. Check it out:
 For convenience, I've created a Dockerfile. To use the application, simply do the following:
 
 ```bash
-docker build -t pmb:server .
-docker run -p 45554:45554 -p 45555:45555 -d pmb:server
+chmod +x build_and_run_docker.sh
+bash build_and_run_docker.sh
 ```
 
 # Ports
 
 The application uses two ports:
 
-- `45554` for the frontend. You can change the port for the frontend in the `env` file.
-- `45555` for the vlc server. You can change the port for the vlc in the `env` file.
+- One port is for the frontend, by default it is `12345`. You can change the port for the frontend in the `env` file.
+- One port is for the vlc server, by default it is `12346`. You can change the port for the vlc in the `env` file.
 
 # Env file
 
