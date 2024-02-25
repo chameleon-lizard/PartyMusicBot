@@ -67,10 +67,16 @@ class UserBaseModel(pydantic.BaseModel):
         :return: A User object
 
         """
+        try:
+            is_banned = next(
+                (_.is_banned for _ in player.users if _.user_id == self.user_id and _.username == '@' + self.username)
+            )
+        except StopIteration:
+            is_banned = False
         return utils.User(
             user_id=self.user_id,
             username=self.username,
-            is_banned=True,
+            is_banned=is_banned,
         )
 
 
