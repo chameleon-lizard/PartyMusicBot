@@ -348,13 +348,13 @@ def add_song_anon(message: telebot.types.Message) -> None:
     # Sending song info to server
     try:
         response = requests.post(
-            url=f"http://{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}/add_song",
+            url=f"http://{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}/add_song_anon",
             data=json.dumps(
                 {
                     'url': url,
                     'user': {
-                        'user_id': 'Anon',
-                        'username': 'Anonimous user',
+                        'user_id': f'{message.from_user.id}',
+                        'username': f'@{message.from_user.username}',
                     },
                 }
             ),
