@@ -33,7 +33,7 @@ button_markup.add(telebot.types.KeyboardButton('Help'))
 
 def register_new_user(
     message: telebot.types.Message,
-    user_id: str,
+    user_id: int | str,
     username: str,
 ) -> bool:
     """
@@ -46,17 +46,10 @@ def register_new_user(
     :return: True if user was registered, False if connection to server was not completed.
     """
     try:
-        requests.post(
-            url=f"http://{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}/register",
-            data=json.dumps(
-                {
-                    'user_id': f'{user_id}',
-                    'username': f'@{username}',
-                }
-            ),
-        ).json()
-
-        return True
+        return utils.send_register_request(
+            user_id=user_id,
+            username=username,
+        )
     except requests.exceptions.ConnectionError:
         logging.info(f'Could not register user: {user_id}, @{username}')
         bot.reply_to(
@@ -71,7 +64,8 @@ def register_new_user(
 @bot.message_handler(func=lambda message: message.text in ('/start', '/help', 'Help'))
 def welcome(message: telebot.types.Message) -> None:
     """
-    Handle the user's first message to the bot, sending a greeting and instructions on how to use the bot. Registers new users.
+    Handle the user's first message to the bot, sending a greeting and instructions on how to use the bot.
+    Registers new users.
 
     :param message: The message object received from the user.
 
@@ -354,13 +348,13 @@ def add_song_anon(message: telebot.types.Message) -> None:
     # Sending song info to server
     try:
         response = requests.post(
-            url=f"http://{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}/add_song",
+            url=f"http://{os.environ.get('SERVER_IP')}:{os.environ.get('API_PORT')}/add_song_anon",
             data=json.dumps(
                 {
                     'url': url,
                     'user': {
-                        'user_id': 'Anon',
-                        'username': 'Anonimous user',
+                        'user_id': f'{message.from_user.id}',
+                        'username': f'@{message.from_user.username}',
                     },
                 }
             ),
