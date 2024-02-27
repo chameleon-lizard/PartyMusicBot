@@ -201,7 +201,7 @@ def history(message: telebot.types.Message) -> None:
         return
 
     # Else getting only last 10 songs to limit the amount of spam
-    song_history = response['Result'][:10]
+    song_history = response['Result'][::-1][:10]
 
     # Sending song info
     bot.reply_to(
