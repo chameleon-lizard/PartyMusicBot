@@ -153,6 +153,71 @@ def download_song(url: str, suggested_by: User) -> Song:
         return video
 
 
+def format_for_telegram(text: str) -> str:
+    """
+    Formats text for telegram, escaping the following characters:
+      _ with \_;
+      * with \*;
+      [ with \[;
+      ] with \];
+      ( with \(;
+      ) with \);
+      ~ with \~;
+      ` with \`;
+      > with \>;
+      # with \#;
+      + with \+;
+      - with \-;
+      = with \=;
+      | with \|;
+      { with \{;
+      } with \};
+      . with \.;
+      ! with \!;
+
+    :param text: Text to format
+
+    :return: Formatted text
+    """
+    return text.replace(
+        '_', '\_'
+        ).replace(
+        '*', '\*'
+        ).replace(
+        '[', '\['
+        ).replace(
+        ']', '\]'
+        ).replace(
+        '(', '\('
+        ).replace(
+        ')', '\)'
+        ).replace(
+        '~', '\~'
+        ).replace(
+        '`', '\`'
+        ).replace(
+        '>', '\>'
+        ).replace(
+        '#', '\#'
+        ).replace(
+        '+', '\+'
+        ).replace(
+        '-', '\-'
+        ).replace(
+        '=', '\='
+        ).replace(
+        '|', '\|'
+        ).replace(
+        '{', '\{'
+        ).replace(
+        '}', '\}'
+        ).replace(
+        '.', '\.'
+        ).replace(
+        '!', '\!'
+    )
+
+
 def get_song_text(song_dict: dict) -> str:
     """
     Formats the text for the bot to send.
@@ -165,8 +230,8 @@ def get_song_text(song_dict: dict) -> str:
     if 'Result' in song_dict:
         song_dict = song_dict['Result']
 
-    suggested_by = song_dict['suggested_by']['username'].replace('_', r'\_')
-    return f"[{song_dict['name']}]({song_dict['url']}) - suggested by {suggested_by}"
+    suggested_by = format_for_telegram(song_dict['suggested_by']['username'])
+    return f"[{format_for_telegram(song_dict['name'])}]({song_dict['url']}) - suggested by {suggested_by}"
 
 
 def send_history_to_all_users(users: list[User], history: list[Song], token: str) -> None:
