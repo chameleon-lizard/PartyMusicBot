@@ -15,6 +15,39 @@ import shutil
 import requests
 import yt_dlp
 
+MUSIC_CACHE_DIR = pathlib.Path(__file__).parent.parent / 'music_cache'
+MAX_CACHE_SIZE_BYTES = 8 * 1024 * 1024 * 1024  # 8 GB
+
+
+def _clean_music_cache(max_size: int = MAX_CACHE_SIZE_BYTES) -> None:
+    """Removes oldest files if cache size exceeds ``max_size`` bytes."""
+
+    cache_dir = MUSIC_CACHE_DIR
+    files = []
+    total_size = 0
+    for path in cache_dir.iterdir():
+        if path.is_file():
+            try:
+                stat = path.stat()
+            except FileNotFoundError:
+                continue
+            files.append((path, stat.st_size, stat.st_mtime))
+            total_size += stat.st_size
+
+    if total_size <= max_size:
+        return
+
+    files.sort(key=lambda x: x[2])
+
+    for path, size, _ in files:
+        try:
+            path.unlink()
+            total_size -= size
+        except FileNotFoundError:
+            continue
+        if total_size <= max_size:
+            break
+
 logging.basicConfig(format='[%(threadName)s] %(levelname)s: %(message)s"', level=logging.INFO)
 
 
@@ -138,6 +171,8 @@ def download_song(url: str, suggested_by: User) -> Song:
         new_title = ''.join('_' if not _.isalnum() else _ for _ in song_info['title'])
         shutil.move(f"{song_info['id']}.mp3", f"music_cache/{new_title}.mp3")
         song_path = pathlib.Path(__file__).parent.parent / pathlib.Path(f"music_cache/{new_title}.mp3")
+
+        _clean_music_cache()
 
         if error_code != 0:
             raise ValueError(f'Youtube download error: Error code {error_code}.')
