@@ -321,20 +321,27 @@ def send_audio(path: pathlib.Path | str, chat_id: int, name: str, token: str) ->
     :return: None
 
     """
-    with open(path, 'rb') as audio:
-        payload = {
-            'chat_id': chat_id,
-            'title': name,
-            'parse_mode': 'HTML'
-        }
-        files = {
-            'audio': audio.read(),
-        }
-        requests.post(
-            f"https://api.telegram.org/bot{token}/sendAudio",
-            data=payload,
-            files=files
-        ).json()
+    # Convert to Path in case a string was provided
+    if isinstance(path, str):
+        path = pathlib.Path(path)
+
+    try:
+        with open(path, 'rb') as audio:
+            payload = {
+                'chat_id': chat_id,
+                'title': name,
+                'parse_mode': 'HTML'
+            }
+            files = {
+                'audio': audio.read(),
+            }
+            requests.post(
+                f"https://api.telegram.org/bot{token}/sendAudio",
+                data=payload,
+                files=files
+            ).json()
+    except FileNotFoundError:
+        logging.info(f'Song already deleted: {path}')
 
 
 def send_register_request(user_id: int | str, username: str) -> bool:
